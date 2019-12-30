@@ -1,6 +1,21 @@
 {
   "Serilog": {
     "MinimumLevel": "Verbose",
-    "WriteTo": [ "Console" ]
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "restrictedToMinimumLevel": "Verbose"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "restrictedToMinimumLevel": "Information",
+          "path": "C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt",
+          "rollingInterval": "Day"
+        }
+      }
+    ]
   }
 }
