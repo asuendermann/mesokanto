@@ -1,10 +1,13 @@
 ﻿using System;
 using System.IO;
 
+using HelloCore.SerilogExtensions;
+
 using Microsoft.Extensions.Configuration;
 
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 
 namespace HelloCore {
     internal class Program {
@@ -17,8 +20,8 @@ namespace HelloCore {
 
             Serilog.Debugging.SelfLog.Enable(Console.Error);
 
-            ConfigureSerilogLocally();
-            //ConfigureSerilogFromFile();
+            //ConfigureSerilogLocally();
+            ConfigureSerilogFromFile();
 
             Log.Verbose("Hello Core! logs Verbose messages");
             Log.Debug("Hello Core! logs Debug messages");
@@ -31,7 +34,7 @@ namespace HelloCore {
         private static void ConfigureSerilogLocally() {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.Console( restrictedToMinimumLevel: LogEventLevel.Verbose)
+                .WriteTo.Console( restrictedToMinimumLevel: LogEventLevel.Verbose, theme: CustomConsoleTheme.KunterBunt)
                 .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", restrictedToMinimumLevel: LogEventLevel.Information, rollingInterval: RollingInterval.Day)
                 .CreateLogger();
             Log.Information("Serilog Configuration locally succeeded");
