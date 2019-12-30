@@ -16,9 +16,10 @@ namespace HelloCore {
         private static void Main(string[] args) {
 
             Serilog.Debugging.SelfLog.Enable(Console.Error);
-            //ConfigureSerilogLocally();
 
-            ConfigureSerilogFromFile();
+            ConfigureSerilogLocally();
+            //ConfigureSerilogFromFile();
+
             Log.Verbose("Hello Core! logs Verbose messages");
             Log.Debug("Hello Core! logs Debug messages");
             Log.Information("Hello Core! logs Information messages");
@@ -30,7 +31,8 @@ namespace HelloCore {
         private static void ConfigureSerilogLocally() {
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.Console( restrictedToMinimumLevel: LogEventLevel.Information)
+                .WriteTo.Console( restrictedToMinimumLevel: LogEventLevel.Verbose)
+                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", restrictedToMinimumLevel: LogEventLevel.Information, rollingInterval: RollingInterval.Day)
                 .CreateLogger();
             Log.Information("Serilog Configuration locally succeeded");
         }
