@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap core CSS -->
+    <link href="Content/bootstrap.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="Content/scrolling-nav.css" rel="stylesheet">
+    <link href="Content/Site.css" rel="stylesheet"/>
+    <title>Serilog - Logging</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        Startseite
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<header class="bg-primary text-white">
+    <div class="container text-center">
+        <h1>Willkommen beim MesoKanto Projekt</h1>
+        <div class="lead">Kapitel 1 . Projekt HelloCore . Serilog - Logging für Core</div>
+    </div>
+</header>
+
+<section id="content">
+    <div class="container">
+        <h2>
+            Das Beispielprojekt: VolumeOne/HelloCore
+        </h2>
+        <p>
+            Die erste leere .NET Core Solution unter dem Namen "VolumeOne" ist mit VS 2019 blitzschnell erzeugt:
+            File/New Project aufrufen, nach "Blank Solution" suchen und den Namen und Speicherort auf der Folgemaske angeben.
+            Band 1 des Rezeptbuchs ist angelegt.
+        </p>
+        <p>
+            Die erste Console App "HelloCore" ist genauso schnell generiert, kompiliert und läuft sofort: "Hello World!".
+            Ich leiste mir noch eine Änderung der Ausgabe nach "Hello Core!" - funktioniert noch immer - und speichere das Projekt im
+            <a href="https://github.com/asuendermann/mesokanto" target="_blank">GitHub</a>.
+        </p>
+        <p>
+            Für alle Codebeispiele kann nun das Projekt von <a href="https://github.com/asuendermann/mesokanto" target="_blank">https://github.com/asuendermann/mesokanto</a>
+            heruntergeladen werden.
+        </p>
+        <p>
+            Als erstes möchte ich die Ausgabe über den Aufruf <code>Console.Writeline</code> durch einen Logeintrag ersetzen, der seine Ausgabe auf die Konsole macht.
+            Warum? Ich konfiguriere meine Logeinträge gerne so, dass sie in der Entwicklungsumgebung auf die Konsole und in der Produktivumgebung auf ein
+            Speichermedium - File oder Datenbank - schreiben.
+            Viele meiner Programme laufen jahrelang im Hintergrund als Scheduled Tasks auf irgendeinem Server - da möchte ich im Fehlerfall auf Protokolle zurückgreifen können,
+            und im Gutfall zumindest erfahren, dass das Programm gelaufen ist und vielleicht auch, was es getan hat.
+            In der Entwicklungsumgebung sehe ich aber ganz gerne sofort, was passiert.
+        </p>
+        <p>
+            Ich habe jahrelang gerne mit Log4Net gearbeitet, finde aber die Konfiguration insbesondere für die Ausgabe in eine Datenbank schon sehr umständlich.
+            Den Umstieg auf .NET Core habe ich zum Anlass genommen, mich nach etwas Neuem umzusehen.
+            Deswegen habe ich mal gesucht, welche Logging-Frameworks es für .Net Core inzwischen so gibt.
+            Meine Anforderungen sind: Unterstützung für Ausgabe in Konsole, File und MS SQL Server, dabei eine möglichst einfache und flexible Konfiguration für alle Anwendungsfälle.
+        </p>
+        <p>
+            Ich habe mich dann für <a href="http://serilog.net/">Serilog</a> entschieden.
+            Die Serilog Homepage ist unter <a href="https://serilog.net/" target="_blank">https://serilog.net/</a> zu finden.
+        </p>
+        <p>
+            Serilog kommt bei vielen Bewertungen (einschließlich meiner persönlichen) gut weg, während Log4Net oft als etwas, naja, altbacken bewertet wird.
+            Letzteres sehe ich persönlich etwas anders.
+            Log4Net und auch Log4J, wo Log4Net ursprünglich herkommt, waren zu ihrer Zeit <i>state of the art</i>,
+            und wo etwas seinen Zweck erfüllt, gibt es keinen Grund, gut laufende Projekte zu ändern.
+            Aber wenn sowieso ein neues Kapitel aufgeschlagen wird, kann man sich ja mal umschauen.
+        </p>
+        <p>
+            Serilog unterstützt eine Vielzahl von als "Sinks" bezeichneten Ausgabemedien, ist gut dokumentiert und produziert standardmäßig bereits hilfreiche Logs.
+            Für die meisten Anwendungsfälle reichen mir die Sinks "Console", "File" und "MsSqlServer".
+            "RollingFile" ist nützlich, wenn man die Festplatte nicht auf Dauer vollmüllen will.
+            Serilog kann sowohl über eine JSON Konfigurationsdatei als auch über eine Programmierschnittstelle relativ einfach und doch flexibel konfiguriert werden.
+            Die gewohnte Möglichkeit der Konfiguration über XML gibt es auch noch, wird hier nicht in Betracht gezogen.
+        </p>
+        <h2>
+            Benötigte Packages
+        </h2>
+        <p>
+            Wer mit .Net Core zu arbeiten beginnt, wird schnell feststellen, dass die Kommunikation mit den Kollegen zu einem zunimmt.
+            Die Standard-Einstiegsfrage lautet "Du, in welchem Package finde ich denn die Funktion/Extension/Klasse <i>Soundso </i>...?".
+            Danach beginnt meist ein gewisses Rätselraten, bis man per Trial-and-Error die benötigten Packages gefunden hat.
+        </p>
+        <p>
+            Bei Serilog ist das ganz einfach. Lediglich z (sieben!) Serilog Packages reichen für meine Zwecke.
+            Und natürlich ein paar Microsoft-Packages, damit erst mal die Konfiguration gelesen werden kann.
+            Weitere Packages kommen hinzu, wenn ich weitere spezielle "Sinks" verwenden, z.B. mehrere Files verwenden möchte (RollingFiles).
+            Die angebotenen Packages mit verschiedenen "Sinks" lassen kaum Wünsche offen.
+        </p>
+        <p>Hier also die Packages für das HelloCore Projekt:</p>
+        <ol>
+            <li>Serilog (liefert Basisklassen, aber geloggt wird noch nichts)</li>
+            <li>Serilog.Settings.Configuration (erlaubt das Lesen der JSON Konfigurations Datei, geloggt wird immer noch nichts)</li>
+            <li>Serilog.Sinks.Console (jetzt endlich kann auf die Konsole geschrieben werden) </li>
+            <li> Serilog.Sinks.File (schreibt in ein einzelnes Logfile)</li>
+            <li>Serilog.Sinks.MSSqlServer (schreibt in eine MS SQLServer DB)</li>
+            <li>Serilog.Enrichers.Environment</li>
+            <li>Serilog.Enrichers.Thread</li>
+        </ol>
+        <p>
+            Außerdem benötigt werden (um die Konfigurationsdatei lesen zu können)<br />
+        </p>
+        <ol>
+            <li>Microsoft.Extensions.Configuration.Abstractions</li>
+            <li>Microsoft.Extensions.Configuration</li>
+            <li>Microsoft.Extensions.Configuration.Json</li>
+            <li>Microsoft.Extensions.Configuration.EnvironmentVariables</li>
+        </ol>
+        <h2>
+            Serilog Fehler ausgeben
+        </h2>
+        <p>
+            Serilog bietet eine Logging-Einstellung für sich selbst an. Die Codezeile
+        </p>
+        <p>
+            <code>Serilog.Debugging.SelfLog.Enable(Console.Error);</code>
+        </p>
+        <p>
+            schafft Abhilfe in unserer Konsolen-Anwendung, wenn es mit der Konfiguration von Serilog nicht klappt:
+            Exceptions werden auf die Konsole geschrieben.
+            Andere Varianten und mehr Details stellt
+            <a href="https://github.com/serilog/serilog/wiki/Debugging-and-Diagnostics" target="_blank">Debugging and Diagnostics · serilog/serilog Wiki · GitHub</a>
+            zur Verfügung.
+        </p>
+        <p>
+            Damit hat man eine Möglichkeit, Konfigurationsfehlern auf die Spur zu kommen.
+            Die Fehlermeldungen selbst sind mehr oder weniger sprechend.
+            Auf jeden Fall sieht man, dass irgendetwas nicht gestimmt haben muss. Beispiele folgen.
+        </p>
+        <h2>
+            Sink "Console"
+        </h2>
+        <p>
+            <a href="https://github.com/serilog/serilog-sinks-console" target="_blank">serilog/serilog-sinks-console</a>
+            enthält eine Readme Datei mit allen wesentlichen Informationen zum Sink "Console".<br />
+        </p>
+        <h3>
+            Sink "Console" - Konfiguration per Konfigurationsdatei
+        </h3>
+        <p>
+            Zunächst einmal benötigt unser Projekt eine Konfigurationsdatei.
+            Da man ohne weiteres mit mehreren Dateien arbeiten kann, bekommt mein Projekt also erst mal eine eigene JSON Konfigurationsdate für Serilog:
+            serilogsettings.json. Einfach mit "Add/Item JSON File" im Projektverzeichnis anlegen.
+            Nicht vergessen, bei den "Properties" der Datei unter "Copy to output directory" mindestens "Copy if newer" oder "Copy Always" anzugeben.
+            Eine minimale Konfiguration für die Ausgabe von allen Logeinträgen auf der Konsole sieht so aus:
+        </p>
+<pre><code>"Serilog": {
+    "MinimumLevel": "Verbose",
+    "WriteTo": [ "Console" ]
+    }
+</code></pre>
+        <p>
+            Serilog kennt die üblichen Levels Verbose (0), Debug(1), Information(2), Warning(3), Error(4), Fatal(5).
+            Verbose hat den niedrigsten Schwellenwert, ist also am ausführlichsten, Fatal mit dem höchsten Schwellenwert ist am verschwiegensten.
+            Die enum LogEventLevel stellt die entsprechenden Werte zur Verfügung.
+        </p>
+        <h3>
+            Sink "Console" - Konfiguration im Programmcode
+        </h3>
+        <p>
+            Alle Konfigurationen für das Logging lassen sich auch programmiertechnisch erreichen. Für das einfache Konsolenlogging lautet der Code:
+        </p>
+<pre><code>Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Verbose()
+    .WriteTo.Console()
+    .CreateLogger();
+</code></pre>
+
+        <h3>
+            Eigenes Farbschema definieren
+        </h3>
+        <p>
+            In der einfachsten Variante verwendet "Console" ein default-Farbthema.
+            Die Readme Datei gibt auch einen Hinweis, wie die Verwendung der anderen Standard-Farbthemen zu konfigurieren ist.
+            Es können auch leicht eigene Farbthemen definiert werden.
+            Das HelloCode Projekt verwendet das eigene Farbthema CustomConsoleThemes.KunterBunt.
+            Erklärung zu den Farben liefert <a href="http://jafrog.com/2013/11/23/colors-in-terminal.html" target="_blank">Jafrog"s Dev blog</a>.
+            Geändert wird in "Kunterbunt" nur die Farbgebung für den dreibuchstabige Code, der das LogEventLevel anzeigt.
+        </p>
+        <p>
+            Der Parameter
+            <code>"theme": "HelloCore.SerilogExtensions.CustomConsoleTheme::KunterBunt, HelloCore"</code>
+            in der serilogsettings.json Datei, der das Farbthema umstellt, ist erklärungsbedürftig.
+            Offenbar ist der erste Teil der Name der Property "KunterBunt", die das Thema definiert.
+            Der zweite Teil HelloCore bezeichnet die Assembly, in der nach der Klasse gesucht werden soll.
+            Beides zusammen liefert die Information für ein Auffinden über Reflection.
+        </p>
+    <h2>
+        Sink "File"
+    </h2>
+    <p>
+        Unter <a href="https://github.com/serilog/serilog-sinks-file" target="_blank">serilog/serilog-sinks-file: Write Serilog events to files</a> 
+        gibt es eine kurze Einführung in die Konfiguration für das Schreiben in ein File.
+        In der JSON Konfiguration für die "File" Konfiguration sind die Parameter "restrictedToMinimumLevel", "path" und "rollingInterval" wirksam.<br />
+    </p>
+    <p>
+        "path" gibt den Pfad- und Dateinamen des Logfiles an. 
+        Ohne Pfadnamen wird das Logfile in das Basisverzeichnis der Anwendung geschrieben. 
+        Mit relativem Pfadnamen wird im Basisverzeichnis, soweit nicht schon vorhanden, eine entsprechende Ordnerstruktur angelegt. 
+        Mit absolutem Pfadnamen wird das Verzeichnis unter dem angegebenen Pfad verwendet oder erzeugt. 
+        Im Konfigurationsfile funktionieren sowohl der einfache Slash "/" als auch ein doppelter Backslash "\\" (Backslash mit Backslash als Escape-Sequenz in JSON) als Trennzeichen im Pfad.
+    </p>
+    <p>
+        So tolerant Serilogs File Sink gegenüber noch nicht exitierenden Verzeichnissen ist - wenn das Wurzelverzeichis des absolute Pfades nicht existiert, passiert erst mal gar nichts. 
+        SelfLog hilft hier weiter:
+        Bei einem nicht existierenden absoluten Pfad "Q:/..."  wird "<i>File target ... was locked, attempting to open next in sequence ...</i>" ausgegeben. 
+        Serilog versucht offenbar, sich Ebene für Ebene durch den Pfad hochzuhangeln und scheitert jedes Mal. 
+        Also hat offenbar ganz oben im Pfad etwas nicht gestimmt.
+    </p>
+    <p>
+        "rollingInterval" kennt die Werte der <i>enum </i><b>RollingInterval</b>: Infinite, Year, Month, Day, Hour, Minute. 
+        Entsprechend dieser Einstellung wird regelmäßig ein neues Logile angelegt, 
+        dessen Basisname um einem Zeitstempel mit einer dem "rollingInterval" entsprechenden Genauigkeit erweitert wird.
+        Wenn im Konfigurationsfile ein nicht interpretierbarer Wert für eine <i>enum </i>steht, also zum Beispiel <code>"rollingInterval": "Always"</code>, fliegt eine ArgumentException: 
+        "<i>Requested Value "Always" was not found</i>". Mit eingeschaltetem SelfLog in diesem Fall tatsächlich eine hilfreiche Nachricht.
+    </p>
+    <h2>
+        Sink "MSSqlServer"
+    </h2>
+    <p>
+        Unter <a href="https://github.com/serilog/serilog-sinks-mssqlserver" target="_blank">serilog/serilog-sinks-mssqlserver: A Serilog sink that writes events to Microsoft SQL Server</a> 
+        gibt es eine sehr ausführliche Einführung in die Konfiguration für das Schreiben in eine MS SQLServer Datenbank. 
+        Die ist auch notwendig, weil es viele Möglichkeiten gibt, am Datenbanklogging Anpassungen vorzunehmen. 
+        Eine relativ einfache Konfiguration ist im HelloCore Projekt enthalten.
+    </p>
+    <p>
+        Das Schreiben in eine Datenbank benötigt im einfachsten Fall zwei Parameter:
+    </p>
+    <dl>
+        <dt>connectionString:</dt>
+        <dd>Der ConnectionString für die MSSqlServer Datenbank, der zu einer existierenden Datenbank führen muss.</dd>
+        <dt>tableName:</dt>
+        <dd>Der Name der Tabelle, in die die Logging-Einträge geschreiben werden sollen.</dd>
+    </dl>
+    <p>
+        Nützlich, aber nicht notwendig, ist der Parameter <b>autoCreateSqlTable</b> mit dem Wert <b>true</b>: Dann wird die Logging-Tabelle automatisch erstellt, wenn sie nicht bereits vorhanden ist.
+        Serilog stellt ein Standardschema für die Logging-Tabelle zur Verfügung, das in vielen Fällen genügend sein dürfte. 
+    </p>
+    <p>
+        Im Beispielprojekt HeloCore wird die Spaltenkonfiguration leicht verändert:
+        2 werden Standardspalten aus der Logging-Tabelle entfernt und 3 eigene Spalten hinzugefügt. 
+        Das Logging wird um den Environment-Parameter MachineName und die ThreadId erweitert. 
+        Über die Klasse ProjectNameEnricher wird demonstriert, wie eine eigene Property, in diesem Fall der Name der aufrufenden Assembly als ProjectName, ins Logging eingefügt.
+    </p>
+    <p>
+        Weitere Konfigurationseinstellungen beschreibt die für diesen Sink wirklich sehr ausführliche Dokumentation.
+    </p>
+    <h2>
+        LogEventLevel pro Logger einstellen
+    </h2>
+    <p>
+        Serilog unterstützt das Arbeiten mit mehreren Ausgabemedien für einen Logger. 
+        Jedes Ausgabemedium kann sowohl über die Konfigurationsdatei als auch über den Programmcode individuell konfiguriert werden. 
+        Am Beispiel des LogEventLevel ist dies im Beispielprojekt umgesetzt. 
+        Sowohl die Konfigurationsdatei als auch der Programmcode legen "Verbose" als allgemeines LogEventLevel fest und 
+        ordnen dem "Console", "File" und "MSSqlServer" Sink über den Parameter "restrictedToMinimumLevel" jeweils eigene Levels.
+    </p>
+    <p>
+        Diese Konfiguration funktioniert nur, wenn das Basislevel  einen niedrigeren oder gleichen Schwellenwert 
+        (also eine höhere oder gleiche Ausführlichkeit) hat als der jeweilige Logger. 
+        Basislevel "Verbose" mit restrictedToMinimumLevel = "Information" funktioniert, umgekehrt nicht - es bleibt bei "Information".
+    </p>
+    <p>
+        Darüber hinaus kann noch mit mehreren Loggern, Filtern etc. gearbeitet werden - dazu bitte an die Serilog Dokumentation wenden. 
+        Wenn mir mal meine Serilog-Konfiguration mit dem Standard-Logger nicht mehr ausreicht, gibt es dazu mehr.
+    </p>
+    </div>
+</section>
+
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; 2019 <a href="mailto:mesokanto@gmx.de">MesoKanto</a></p>
+    </div>
+</footer>
+<!-- Bootstrap core JavaScript -->
+<script src="Scripts/jquery-3.3.1.js"></script>
+<script src="Scripts/bootstrap.js"></script>
+
+<script src="Scripts/scrolling-nav.js"></script>
+</body>
+</html>
