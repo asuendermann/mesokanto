@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.IO;
 
 using HelloCore.SerilogExtensions;
@@ -8,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Serilog;
 using Serilog.Debugging;
 using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
 
 namespace HelloCore {
     internal class Program {
@@ -39,8 +42,8 @@ namespace HelloCore {
 
                 SelfLog.Enable(Console.Error);
 
-                ConfigureSerilogLocally();
-                //ConfigureSerilogFromFile();
+                //ConfigureSerilogLocally();
+                ConfigureSerilogFromFile();
 
                 Log.Verbose("Hello Core! logs Verbose messages");
                 Log.Debug("Hello Core! logs Debug messages");
@@ -66,13 +69,40 @@ namespace HelloCore {
                 .Build();
             var connectionString = configuration.GetConnectionString("LocalMesokantoDb");
 
+            var columnOptions = new ColumnOptions {
+                AdditionalColumns = new List<SqlColumn> {
+                    new SqlColumn {
+                        ColumnName = "MachineName",
+                        DataType = SqlDbType.NVarChar,
+                        DataLength = 64
+                    },
+                    new SqlColumn {
+                        ColumnName = "ThreadId",
+                        DataType = SqlDbType.Int
+                    },
+                    new SqlColumn {
+                        ColumnName = "ProjectName",
+                        DataType = SqlDbType.NVarChar,
+                        DataLength = 128
+                    }
+                }
+            };
+            columnOptions.Store.Remove(StandardColumn.MessageTemplate);
+            columnOptions.Store.Remove(StandardColumn.Properties);
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .Enrich.FromLogContext()
+                .Enrich.WithMachineName()
+                .Enrich.WithThreadId()
+                .Enrich.With(new ProjectNameEnricher())
                 .WriteTo.Console(LogEventLevel.Verbose, theme: CustomConsoleTheme.KunterBunt)
-                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", LogEventLevel.Information,
+                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", 
+                    LogEventLevel.Information,
                     rollingInterval: RollingInterval.Day)
-                .WriteTo.MSSqlServer(connectionString, TableSerilog,restrictedToMinimumLevel: LogEventLevel.Verbose, autoCreateSqlTable: true)
+                .WriteTo.MSSqlServer(connectionString, TableSerilog,
+                    restrictedToMinimumLevel: LogEventLevel.Verbose, 
+                    autoCreateSqlTable: true, columnOptions: columnOptions)
                 .CreateLogger();
             Log.Information("Serilog Configuration locally succeeded");
         }
@@ -80,6 +110,9 @@ namespace HelloCore {
         private static void ConfigureSerilogFromFile() {
             var serilogConfiguration = ReadSerilogConfiguration();
             var loggerConfiguration = new LoggerConfiguration()
+                .Enrich.WithMachineName()
+                .Enrich.WithThreadId()
+                .Enrich.With(new ProjectNameEnricher())
                 .ReadFrom.Configuration(serilogConfiguration);
             Log.Logger = loggerConfiguration.CreateLogger();
             Log.Information("Serilog Configuration from file succeeded");

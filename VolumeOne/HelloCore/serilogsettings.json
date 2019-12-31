@@ -16,6 +16,71 @@
           "path": "C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt",
           "rollingInterval": "Day"
         }
+      },
+      {
+        "Name": "MSSqlServer",
+        "Args": {
+          "restrictedToMinimumLevel": "Information",
+          "connectionString": "LocalMesokantoDb",
+          "tableName": "Serilog",
+          "autoCreateSqlTable": "true",
+          "columnOptionsSection": {
+            "disableTriggers": true,
+            //"clusteredColumnstoreIndex": false,
+            //"primaryKeyColumnName": "Id",
+            //"addStandardColumns": ["LogEvent"],
+            "removeStandardColumns": ["MessageTemplate", "Properties"],
+            "additionalColumns": [
+              {
+                "ColumnName": "MachineName",
+                "DataType": "nvarchar",
+                "AllowNull": true,
+                "DataLength": 64
+              },
+              {
+                "ColumnName": "ThreadId",
+                "DataType": "int"
+              },
+              {
+                "ColumnName": "ProjectName",
+                "DataType": "nvarchar",
+                "AllowNull": true,
+                "DataLength": 128
+              }
+            ]
+            //"id": { "nonClusteredIndex": true },
+            //"level": {
+            //  "columnName": "Severity",
+            //  "storeAsEnum": false
+            //},
+            //"properties": {
+            //  "columnName": "Properties",
+            //  "excludeAdditionalProperties": true,
+            //  "dictionaryElementName": "dict",
+            //  "itemElementName": "item",
+            //  "omitDictionaryContainerElement": false,
+            //  "omitSequenceContainerElement": false,
+            //  "omitStructureContainerElement": false,
+            //  "omitElementIfEmpty": true,
+            //  "propertyElementName": "prop",
+            //  "rootElementName": "root",
+            //  "sequenceElementName": "seq",
+            //  "structureElementName": "struct",
+            //  "usePropertyKeyAsElementName": false
+            //},
+            //"timeStamp": {
+            //  "columnName": "Timestamp",
+            //  "convertToUtc": true
+            //},
+            //"logEvent": {
+            //  "excludeAdditionalProperties": true,
+            //  "excludeStandardColumns": true
+            //},
+            //"message": { "columnName": "Msg" },
+            //"exception": { "columnName": "Ex" },
+            //"messageTemplate": { "columnName": "Template" }
+          }
+        }
       }
     ]
   }

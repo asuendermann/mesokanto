@@ -10,13 +10,6 @@
   <ProjectExtensions><VisualStudio><UserProperties serilogsettings_1json__JsonSchema="http://json.schemastore.org/appsettings" /></VisualStudio></ProjectExtensions>
 
   <ItemGroup>
-    <Compile Remove="DatabaseAccess\HelloCoreDbContext.cs" />
-    <Compile Remove="DatabaseAccess\HelloCoreDbContextFactory.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.0" />
@@ -37,10 +30,6 @@
     <None Update="serilogsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="DatabaseAccess\" />
   </ItemGroup>
 
 </Project>
