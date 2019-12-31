@@ -6,36 +6,73 @@ using HelloCore.SerilogExtensions;
 using Microsoft.Extensions.Configuration;
 
 using Serilog;
+using Serilog.Debugging;
 using Serilog.Events;
-using Serilog.Sinks.SystemConsole.Themes;
 
 namespace HelloCore {
     internal class Program {
-        public static string AspnetcoreEnvironment = "ASPNETCORE_ENVIRONMENT";
+        public static readonly string AspnetcoreEnvironment = "ASPNETCORE_ENVIRONMENT";
 
-        public static string AppSettings = "appsettings";
-        public static string SerilogSettings = "serilogsettings";
+        public static readonly string AppSettings = "appsettings";
 
-        private static void Main(string[] args) {
+        public static readonly string SerilogSettings = "serilogsettings";
 
-            Serilog.Debugging.SelfLog.Enable(Console.Error);
+        private static readonly string ConnectionString =
+            "Data Source=(localdb)\\MSSQLLocalDb;Initial Catalog=MesokantoDb;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
 
-            //ConfigureSerilogLocally();
-            ConfigureSerilogFromFile();
+        public static readonly string TableSerilog = "SeriLog";
 
-            Log.Verbose("Hello Core! logs Verbose messages");
-            Log.Debug("Hello Core! logs Debug messages");
-            Log.Information("Hello Core! logs Information messages");
-            Log.Warning("Hello Core! logs Warning messages");
-            Log.Error("Hello Core! logs Error messages");
-            Log.Fatal("Hello Core! logs Fatal messages");
+        public static void Main(string[] args) {
+            try {
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", false, true)
+                    .AddJsonFile(
+                        $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
+                        true)
+                    .Build();
+
+                //var context = new HelloCoreDbContextFactory().CreateDbContext(args);
+                //context.Database.EnsureDeleted();
+                //context.Database.EnsureCreated();
+                //Console.WriteLine("DB Setup Complete");
+
+                SelfLog.Enable(Console.Error);
+
+                ConfigureSerilogLocally();
+                //ConfigureSerilogFromFile();
+
+                Log.Verbose("Hello Core! logs Verbose messages");
+                Log.Debug("Hello Core! logs Debug messages");
+                Log.Information("Hello Core! logs Information messages");
+                Log.Warning("Hello Core! logs Warning messages");
+                Log.Error("Hello Core! logs Error messages");
+                Log.Fatal("Hello Core! logs Fatal messages");
+            } catch (Exception ex) {
+                Console.WriteLine(ex.StackTrace);
+                Log.Fatal(ex, "DB Setup terminated with exception");
+            } finally {
+                Log.CloseAndFlush();
+            }
         }
 
         private static void ConfigureSerilogLocally() {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", false, true)
+                .AddJsonFile(
+                    $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"}.json",
+                    true)
+                .Build();
+            var connectionString = configuration.GetConnectionString("LocalMesokantoDb");
+
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.Console( restrictedToMinimumLevel: LogEventLevel.Verbose, theme: CustomConsoleTheme.KunterBunt)
-                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", restrictedToMinimumLevel: LogEventLevel.Information, rollingInterval: RollingInterval.Day)
+                .Enrich.FromLogContext()
+                .WriteTo.Console(LogEventLevel.Verbose, theme: CustomConsoleTheme.KunterBunt)
+                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", LogEventLevel.Information,
+                    rollingInterval: RollingInterval.Day)
+                .WriteTo.MSSqlServer(connectionString, TableSerilog,restrictedToMinimumLevel: LogEventLevel.Verbose, autoCreateSqlTable: true)
                 .CreateLogger();
             Log.Information("Serilog Configuration locally succeeded");
         }
