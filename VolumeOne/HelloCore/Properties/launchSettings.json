@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "HelloCore": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "SampleProfile": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "SampleProfile"
+      }
+    }
+  }
+}

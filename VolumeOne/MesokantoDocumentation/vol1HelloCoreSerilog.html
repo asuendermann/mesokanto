@@ -235,7 +235,7 @@
         Unter <a href="https://github.com/serilog/serilog-sinks-mssqlserver" target="_blank">serilog/serilog-sinks-mssqlserver: A Serilog sink that writes events to Microsoft SQL Server</a> 
         gibt es eine sehr ausführliche Einführung in die Konfiguration für das Schreiben in eine MS SQLServer Datenbank. 
         Die ist auch notwendig, weil es viele Möglichkeiten gibt, am Datenbanklogging Anpassungen vorzunehmen. 
-        Eine relativ einfache Konfiguration ist im HelloCore Projekt enthalten.
+        Eine beispielhafte Konfiguration ist im HelloCore Projekt in der Datei <code>serilogsettings.json</code> enthalten.
     </p>
     <p>
         Das Schreiben in eine Datenbank benötigt im einfachsten Fall zwei Parameter:
@@ -247,18 +247,94 @@
         <dd>Der Name der Tabelle, in die die Logging-Einträge geschreiben werden sollen.</dd>
     </dl>
     <p>
-        Nützlich, aber nicht notwendig, ist der Parameter <b>autoCreateSqlTable</b> mit dem Wert <b>true</b>: Dann wird die Logging-Tabelle automatisch erstellt, wenn sie nicht bereits vorhanden ist.
-        Serilog stellt ein Standardschema für die Logging-Tabelle zur Verfügung, das in vielen Fällen genügend sein dürfte. 
+        Nützlich, aber nicht notwendig, ist ein weiterer Parameter:
     </p>
+    <dl>
+        <dt>autoCreateSqlTable:</dt>
+        <dd>
+            Der Wert <code>true</code> bewirkt, dass die Logging-Tabelle automatisch erstellt wird, wenn sie nicht bereits vorhanden ist.
+            Serilog stellt ein Standardschema für die Logging-Tabelle zur Verfügung, für das man projektspezifische Anpassungen vornehmen kann .
+        </dd>
+    </dl>
+    <h3>Anpassungen der Konfiguration</h3>
     <p>
-        Im Beispielprojekt HeloCore wird die Spaltenkonfiguration leicht verändert:
-        2 werden Standardspalten aus der Logging-Tabelle entfernt und 3 eigene Spalten hinzugefügt. 
-        Das Logging wird um den Environment-Parameter MachineName und die ThreadId erweitert. 
-        Über die Klasse ProjectNameEnricher wird demonstriert, wie eine eigene Property, in diesem Fall der Name der aufrufenden Assembly als ProjectName, ins Logging eingefügt.
+        Im Beispielprojekt HelloCore wird die standardmäßige Spaltenkonfiguration verändert. Dies geschieht in der <code>serilogsettings.json</code> Datei
+        im Abschnitt "columnOptionsSection" und im Code über entsprechende Aufrufe.
     </p>
+    <ul>
+        <li>
+            Die Standardspalte "LogEvent" wird im Konfiguratonsfile unter "addStandardColumns" und im Code über 
+            <code>columnOptions.Store.Add(StandardColumn.LogEvent)</code> hinzugefügt. 
+            Sie ist die einzige Standardspalte, die laut Dokumentation aus Gründen der Rückwärtskompatibilität nicht im Default-Schema enthalten ist.
+            Sie schreibt ein JSON Protokoll des gesamten Logeintrages.
+            Weiter unten können im Abschnitt "logEvent" die Standardspalten und die zusätzlichen Properties aus dem Protokoll ausgeschlossen werden.
+            Die Spalte kann nützlich sein, um automatisierte Auswertungen der Loggings vorzunehmen.
+        </li>
+        <li>
+            Die zwei Standardspalten "MessageTemplate" und "Properties" werden aus der Logging-Tabelle entfernt. 
+            Mir reicht das Ergebnis in der Spalte "Message" aus.
+        </li>
+        <li>Die Standardspalte "Timestamp" wird umbenannt nach "TimestampUTC" und auf die Ausgabe des Zeitstempels in UTC-Zeit festgelegt.</li>
+        <li>
+            Die Spalte "MachineName" wird als <code>nullable nvarchar()</code> hinzugefügt.
+            Beim Laden der Konfiguration muss dem Logging im Code über <code>.Enrich.WithMachineName()</code> die Umgebungsvariable 
+            <code>Environment.MachineName</code> bereitgestellt werden.
+            Dann enthält das Logging den Rechnernamen.
+        </li>
+        <li>
+            Analog wird die Spalte "ThreadId" als <code>int</code> hinzugefügt und über <code>.Enrich.WithThreadId()</code> bekannt gemacht.
+        </li>
+        <li>
+            Die selbstdefinierte Spalte "ProjectName" vom Typ <code>nvarchar(128)</code> erhält ihren Wert über die Klasse <code>ProjectNameEnricher</code>.
+            Diese Klasse demonstriert, wie die eigene Property "ProjectName" mit dem Namen der aufrufenden Assembly als Wert ins Logging eingefügt wird.
+            In die Konfiguration gelangt sie im Code über <code>.Enrich.With(new ProjectNameEnricher())</code>.
+        </li>
+    </ul>
     <p>
         Weitere Konfigurationseinstellungen beschreibt die für diesen Sink wirklich sehr ausführliche Dokumentation.
     </p>
+    
+    <h2>Arbeiten mit mehreren Konfigurationsprofilen</h2>
+    
+    <p>
+        .NET Core unterstützt das Arbeiten mit mehreren Konfigurationsprofilen.
+        Im Projekt gibt es die Datei <code>Properties/lauchSettings.json</code>, in der die verschiedenen Profile definiert werden.
+        Bearbeitet wird diese Datei über Project/Properties/Debug Maske. Sie öffnet sich über einen Rechtsklick auf das Projekt und die Auswahl des letzten Menüpunktes "Properties".
+        Dort den Reiter "Debug" auswählen.
+        Ein Standardprofil wird immer beim Hinzufügen des Projektes immer angelegt, nicht jedoch die <code>launchSettings.json</code> Datei.
+        Ist die Datei noch nicht vorhanden, wird sie automatisch angelegt, sobald eigene Profile konfiguriert werden.
+    </p>
+    <p>
+        Übliche Profilnamen sind "Development", "Staging" und "Production". Die Anzahl und Benennung der Profile kann aber beliebig sein.
+        Zugriff auf den aktuellen Profilnamen erhält man über
+        <code>Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")</code>.
+        Einstellen kann man das Profil im VS2019 im Menübereich.
+    </p>
+    
+    <p>
+        Beim Einlesen der Projektkonfiguration können mehrere Profildateien kumuliert werden. 
+        Im HelloCore Projekt wird die Logging-Konfiguration in zwei Schritten aufgebaut:
+<pre><code>.AddJsonFile("appsettings.json", false, true)
+.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"}.json",true)
+</code></pre>
+    </p>
+
+    <p>
+        Über die Namen der Profile lässt sich die Projektkonfiguration steuern. Im HelloCore Projekt ist zwei Beispielprofile mit den zugehörigen Konfigurationsdateien enthalten:
+    </p>
+    
+    <dl>
+        <dt>HelloCore</dt>
+        <dd>mit <code>"ASPNETCORE_ENVIRONMENT": "Development"</code> und der Datei <code>serilogsettings.Development.json</code>, die das MinimumLevel auf Verbose festlegt</dd>
+        <dt>SampleProfile</dt>
+        <dd>mit <code>"ASPNETCORE_ENVIRONMENT": "SampleProfile"</code>und der Datei <code>serilogsettings.SampleProfile.json</code>, die das MinimumLevel auf Warning festlegt</dd>
+    </dl>
+    
+    <p>
+        Beiden Dateien überschreiben das MinimumLevel der Basiskonfiguration <code>serilogsettings.json</code> mit ihren Werten.
+        Das Überschreiben einzelner Properties bei den Sinks funktioniert nicht. Das Hinzufügen eines Items in "WriteTo" im Konfigurationsfile fügt eineen weiteren Sink hinzu.
+    </p>
+    
     <h2>
         LogEventLevel pro Logger einstellen
     </h2>

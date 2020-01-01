@@ -27,12 +27,12 @@ namespace HelloCore {
 
         public static void Main(string[] args) {
             try {
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json", false, true)
-                    .AddJsonFile(
-                        $"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json",
-                        true)
+                    .AddJsonFile($"appsettings.{environment}.json", true)
                     .Build();
 
                 //var context = new HelloCoreDbContextFactory().CreateDbContext(args);
@@ -45,14 +45,20 @@ namespace HelloCore {
                 //ConfigureSerilogLocally();
                 ConfigureSerilogFromFile();
 
-                Log.Verbose("Hello Core! logs Verbose messages");
-                Log.Debug("Hello Core! logs Debug messages");
-                Log.Information("Hello Core! logs Information messages");
-                Log.Warning("Hello Core! logs Warning messages");
-                Log.Error("Hello Core! logs Error messages");
-                Log.Fatal("Hello Core! logs Fatal messages");
+                Log.Verbose(HelloCoreResources.Message_Welcome, LogEventLevel.Verbose, environment);
+                Log.Debug(HelloCoreResources.Message_Welcome, LogEventLevel.Debug, environment);
+                Log.Information(HelloCoreResources.Message_Welcome, LogEventLevel.Information, environment);
+                Log.Warning(HelloCoreResources.Message_Welcome, LogEventLevel.Warning, environment);
+                Log.Error(HelloCoreResources.Message_Welcome, LogEventLevel.Error, environment);
+                Log.Fatal(HelloCoreResources.Message_Welcome, LogEventLevel.Verbose, environment);
             } catch (Exception ex) {
                 Console.WriteLine(ex.StackTrace);
+                var innerEx = ex.InnerException;
+
+                while (null != innerEx) {
+                    Console.WriteLine(innerEx.StackTrace);
+                    innerEx = innerEx.InnerException;
+                }
                 Log.Fatal(ex, "DB Setup terminated with exception");
             } finally {
                 Log.CloseAndFlush();
@@ -87,8 +93,19 @@ namespace HelloCore {
                     }
                 }
             };
+
+            // Configure LogEvent column
+            columnOptions.Store.Add(StandardColumn.LogEvent);
+            columnOptions.LogEvent.ExcludeAdditionalProperties = true;
+            columnOptions.LogEvent.ExcludeStandardColumns = true;
+
+            // Remove unused Standard Columns
             columnOptions.Store.Remove(StandardColumn.MessageTemplate);
             columnOptions.Store.Remove(StandardColumn.Properties);
+
+            // Reconfigure Timestamp column
+            columnOptions.TimeStamp.ColumnName = "TimestampUTC";
+            columnOptions.TimeStamp.ConvertToUtc = true;
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
@@ -120,13 +137,12 @@ namespace HelloCore {
 
         private static IConfigurationRoot ReadSerilogConfiguration() {
             var currentDirectory = Directory.GetCurrentDirectory();
-            var environmentName = Environment.GetEnvironmentVariable(AspnetcoreEnvironment);
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(currentDirectory)
-                .AddJsonFile($"{AppSettings}.json", false, true)
-                .AddJsonFile($"{AppSettings}.{environmentName}.json", true)
+                .AddJsonFile($"appsettings.json", false, true)
                 .AddJsonFile($"{SerilogSettings}.json", false, true)
-                .AddJsonFile($"{SerilogSettings}.{environmentName}.json", true)
+                .AddJsonFile($"{SerilogSettings}.{environment}.json", false, true)
                 .AddEnvironmentVariables()
                 .Build();
             return configuration;

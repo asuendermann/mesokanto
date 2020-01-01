@@ -1,6 +1,6 @@
 {
   "Serilog": {
-    "MinimumLevel": "Verbose",
+    "MinimumLevel": "Fatal",
     "WriteTo": [
       {
         "Name": "Console",
@@ -12,7 +12,7 @@
       {
         "Name": "File",
         "Args": {
-          "restrictedToMinimumLevel": "Information",
+          "restrictedToMinimumLevel": "Verbose",
           "path": "C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt",
           "rollingInterval": "Day"
         }
@@ -20,7 +20,7 @@
       {
         "Name": "MSSqlServer",
         "Args": {
-          "restrictedToMinimumLevel": "Information",
+          "restrictedToMinimumLevel": "Verbose",
           "connectionString": "LocalMesokantoDb",
           "tableName": "Serilog",
           "autoCreateSqlTable": "true",
@@ -28,8 +28,8 @@
             "disableTriggers": true,
             //"clusteredColumnstoreIndex": false,
             //"primaryKeyColumnName": "Id",
-            //"addStandardColumns": ["LogEvent"],
-            "removeStandardColumns": ["MessageTemplate", "Properties"],
+            "addStandardColumns": [ "LogEvent" ],
+            "removeStandardColumns": [ "MessageTemplate", "Properties" ],
             "additionalColumns": [
               {
                 "ColumnName": "MachineName",
@@ -47,7 +47,7 @@
                 "AllowNull": true,
                 "DataLength": 128
               }
-            ]
+            ],
             //"id": { "nonClusteredIndex": true },
             //"level": {
             //  "columnName": "Severity",
@@ -68,14 +68,14 @@
             //  "structureElementName": "struct",
             //  "usePropertyKeyAsElementName": false
             //},
-            //"timeStamp": {
-            //  "columnName": "Timestamp",
-            //  "convertToUtc": true
-            //},
-            //"logEvent": {
-            //  "excludeAdditionalProperties": true,
-            //  "excludeStandardColumns": true
-            //},
+            "timeStamp": {
+              "columnName": "TimestampUTC",
+              "convertToUtc": true
+            },
+            "logEvent": {
+              "excludeAdditionalProperties": true,
+              "excludeStandardColumns": true
+            }
             //"message": { "columnName": "Msg" },
             //"exception": { "columnName": "Ex" },
             //"messageTemplate": { "columnName": "Template" }
