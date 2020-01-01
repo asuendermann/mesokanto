@@ -12,7 +12,7 @@
       {
         "Name": "File",
         "Args": {
-          "restrictedToMinimumLevel": "Verbose",
+          "restrictedToMinimumLevel": "Debug",
           "path": "C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt",
           "rollingInterval": "Day"
         }
@@ -20,7 +20,7 @@
       {
         "Name": "MSSqlServer",
         "Args": {
-          "restrictedToMinimumLevel": "Verbose",
+          "restrictedToMinimumLevel": "Information",
           "connectionString": "LocalMesokantoDb",
           "tableName": "Serilog",
           "autoCreateSqlTable": "true",
