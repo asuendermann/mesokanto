@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap core CSS -->
+    <link href="Content/bootstrap.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="Content/scrolling-nav.css" rel="stylesheet">
+    <link href="Content/Site.css" rel="stylesheet"/>
+    <title>CommandLineParser - Kommandozeile einlesen</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        Startseite
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<header class="bg-primary text-white">
+    <div class="container text-center">
+        <h1>Willkommen beim MesoKanto Projekt</h1>
+        <div class="lead">Kapitel 2 . Projekt HelloCore . Kommandozeile einlesen mit CommandLineParser </div>
+    </div>
+</header>
+
+<section id="content">
+    <div class="container">
+        <h2>
+            Das CommandLineParser Package
+        </h2>
+        <p>
+            Die Startpunkte fast aller Projekte enthalten einen Parameter <code>string[] args</code>, über den das Programm gesteuert werden kann.
+            Das <a href="https://github.com/gsscoder/commandline/tree/stable-1.9.71.2">CommandLineParser</a> Package bezeichnet sich selbst ganz bescheiden als
+            <cite>The best C# command line parser that brings standardized *nix getopt style, for .NET. Includes F# support</cite>.
+            Für mich ist es zumindest das beste Kommandozeilen-Werkzeug, das ich kenne.
+        </p>
+        <p>
+            Der Vorläufer ist der CommandLineParser.DotNetStandard, aktuell im Nuget angeboten in der Version1.9.71 - der ist aber nicht gemeint!
+        </p>
+        <p>
+            Als Anwendungsbeispiel dient wieder die Console App "HelloCore". Ich möchte über die Kommandozeile festlegen, ob ich meine Serilog-Konfiguration aus den
+            <code>serilogsettings*.json</code> Konfigurationsdateien einlesen möchte oder das Logging innerhalb des Programms konfiguriere.
+        </p>
+        
+        <p>
+            Die Hilfe für das Projekt ist auf der Projektseite in knapper Form, unter dem Reiter "Wiki" gibt es mehr Details.
+        </p>
+
+        <h2>
+            Benötigte Packages
+        </h2>
+
+        <p>Der CommandLineParser benötigt ein einziges NuGet Package:</p>
+        <ul>
+            <li>CommandLineParser (hier verwendet: V2.7.82)</li>
+        </ul>
+
+        <h2>
+            Benötigter Code
+        </h2>
+        <p>
+            Die Kommandozeilenparameter, die der CommandLineParser versteht, werden über als "Options" bezeichnete Properties festgelegt.
+            CommandLineParser steuert die Interpretation und Validierung der Kommandozeile das <code>Option</code> Attribut, mit denen diese Proeprties dekoriert werden.
+            Für das HelloCore Projekt befindet sich eine Option in der Klasse <code>HelloCoreOptions</code>:
+        </p>
+        <code>
+            <pre>[Option('s', longName: "serilog", Default = "file",
+    HelpText = "Specify how to configure Serilog logger. Use 'program' to configure in program code.")]
+    public string Serilog { get; set; }
+</pre>
+        </code>
+        <p>
+            Diese Option liest den Kommandozeilenparameter ein, der die Quelle der Serilog-Konfiguration festlegt.
+            Die beim Programmstart mitgegebene Kommandozeile wird in in den Projct Properties im Reiter Debug festgelegt.
+            Die Option Serilog kann mit <code>-s program</code> oder <code>--serilog program</code> auf das Einlesen aus dem Programmcode festgelegt werden.
+            <code>-s file</code> verwendet die JSON Konfigurationsdatei.
+            Die Option hat einen DefaultValue von "file", kann also auch weggelsassen werden.
+            Dann wird der Defualtwert verwendet und die Serilog Konfiguration aus der JSON Datei eingelesen.
+        </p>
+        
+        <p>Das Einlesen der Konfiguration erfolgt mit folgendem Code:</p>
+        <code><pre>ParserResult result = Parser.Default.ParseArguments&lt;HelloCoreOptions&gt;(args);
+if (result.Tag == ParserResultType.NotParsed) {
+    return;
+}  else {
+    var parsed = result as Parsed&lt;HelloCoreOptions&gt;;
+    options = parsed?.Value ?? new HelloCoreOptions();
+}
+</pre></code>
+        <p>
+            Das <code>result</code> gibt zunächst an, ob die Kommandozeile eingelesen werden konnte. 
+        </p>
+        
+        <h3>Hilfe und Version ausgeben</h3>
+        
+        <p>
+            Hilfetexte zum Programmaufruf werden ausgegeben, indem die Kommandozeile auf <code>--help</code> gesetzt wird.
+        </p>
+
+        <p>
+            Die Versionsnummer wird ausgegeben, indem die Kommandozeile auf <code>--version</code> gesetzt wird.
+        </p>
+        
+        <p>
+            Beide Optionen sind standardmäßig im CommandLineParser eingebaut und führen zu einem Ergebnis von <code>ParserResultType.NotParsed</code>.
+            Daher sollte dieses Ergebnis immer zum Programmabbruch führen.
+        </p>
+
+    </div>
+</section>
+
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; 2019 <a href="mailto:mesokanto@gmx.de">MesoKanto</a></p>
+    </div>
+</footer>
+<!-- Bootstrap core JavaScript -->
+<script src="Scripts/jquery-3.3.1.js"></script>
+<script src="Scripts/bootstrap.js"></script>
+
+<script src="Scripts/scrolling-nav.js"></script>
+</body>
+</html>

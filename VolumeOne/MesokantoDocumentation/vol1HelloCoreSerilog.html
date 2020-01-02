@@ -327,12 +327,12 @@
         <dt>HelloCore</dt>
         <dd>mit <code>"ASPNETCORE_ENVIRONMENT": "Development"</code> und der Datei <code>serilogsettings.Development.json</code>, die das MinimumLevel auf Verbose festlegt</dd>
         <dt>SampleProfile</dt>
-        <dd>mit <code>"ASPNETCORE_ENVIRONMENT": "SampleProfile"</code>und der Datei <code>serilogsettings.SampleProfile.json</code>, die das MinimumLevel auf Warning festlegt</dd>
+        <dd>mit <code>"ASPNETCORE_ENVIRONMENT": "SampleProfile"</code> und der Datei <code>serilogsettings.SampleProfile.json</code>, die das MinimumLevel auf Warning festlegt</dd>
     </dl>
     
     <p>
         Beiden Dateien überschreiben das MinimumLevel der Basiskonfiguration <code>serilogsettings.json</code> mit ihren Werten.
-        Das Überschreiben einzelner Properties bei den Sinks funktioniert nicht. Das Hinzufügen eines Items in "WriteTo" im Konfigurationsfile fügt eineen weiteren Sink hinzu.
+        Das Überschreiben einzelner Properties bei den Sinks funktioniert nicht. Das Hinzufügen eines Items in "WriteTo" im Konfigurationsfile fügt einen weiteren Sink hinzu.
     </p>
     
     <h2>
@@ -352,7 +352,7 @@
     </p>
     <p>
         Darüber hinaus kann noch mit mehreren Loggern, Filtern etc. gearbeitet werden - dazu bitte an die Serilog Dokumentation wenden. 
-        Wenn mir mal meine Serilog-Konfiguration mit dem Standard-Logger nicht mehr ausreicht, gibt es dazu mehr.
+        Wenn mir mal meine Serilog-Konfiguration mit dem Standard-Logger nicht mehr ausreichen sollte, gibt es dazu mehr.
     </p>
     </div>
 </section>

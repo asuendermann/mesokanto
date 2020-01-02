@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 
+using CommandLine;
+
 using HelloCore.SerilogExtensions;
 
 using Microsoft.Extensions.Configuration;
@@ -27,24 +29,27 @@ namespace HelloCore {
 
         public static void Main(string[] args) {
             try {
-                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
-
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json", false, true)
-                    .AddJsonFile($"appsettings.{environment}.json", true)
-                    .Build();
-
-                //var context = new HelloCoreDbContextFactory().CreateDbContext(args);
-                //context.Database.EnsureDeleted();
-                //context.Database.EnsureCreated();
-                //Console.WriteLine("DB Setup Complete");
+                var options = new HelloCoreOptions();
+                if (null != args) {
+                    var result = Parser.Default.ParseArguments<HelloCoreOptions>(args);
+                    if (result.Tag == ParserResultType.NotParsed) {
+                        // Handles any error, but also --help and --version calls.
+                        return;
+                    } else {
+                        // now we have the options (or use default values) and can continue according to settings
+                        var parsed = result as Parsed<HelloCoreOptions>;
+                        options = parsed?.Value ?? new HelloCoreOptions();
+                    }
+                }
 
                 SelfLog.Enable(Console.Error);
+                if (options.Serilog == "program") {
+                    ConfigureSerilogLocally();
+                } else {
+                    ConfigureSerilogFromFile();
+                }
 
-                //ConfigureSerilogLocally();
-                ConfigureSerilogFromFile();
-
+                var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
                 Log.Verbose(HelloCoreResources.Message_Welcome, LogEventLevel.Verbose, environment);
                 Log.Debug(HelloCoreResources.Message_Welcome, LogEventLevel.Debug, environment);
                 Log.Information(HelloCoreResources.Message_Welcome, LogEventLevel.Information, environment);
@@ -59,6 +64,7 @@ namespace HelloCore {
                     Console.WriteLine(innerEx.StackTrace);
                     innerEx = innerEx.InnerException;
                 }
+
                 Log.Fatal(ex, "DB Setup terminated with exception");
             } finally {
                 Log.CloseAndFlush();
@@ -114,11 +120,11 @@ namespace HelloCore {
                 .Enrich.WithThreadId()
                 .Enrich.With(new ProjectNameEnricher())
                 .WriteTo.Console(LogEventLevel.Verbose, theme: CustomConsoleTheme.KunterBunt)
-                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt", 
+                .WriteTo.File("C:\\tmp\\VolumeOne\\Logs\\HelloCore.txt",
                     LogEventLevel.Information,
                     rollingInterval: RollingInterval.Day)
                 .WriteTo.MSSqlServer(connectionString, TableSerilog,
-                    restrictedToMinimumLevel: LogEventLevel.Verbose, 
+                    restrictedToMinimumLevel: LogEventLevel.Verbose,
                     autoCreateSqlTable: true, columnOptions: columnOptions)
                 .CreateLogger();
             Log.Information("Serilog Configuration locally succeeded");
@@ -140,7 +146,7 @@ namespace HelloCore {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(currentDirectory)
-                .AddJsonFile($"appsettings.json", false, true)
+                .AddJsonFile("appsettings.json", false, true)
                 .AddJsonFile($"{SerilogSettings}.json", false, true)
                 .AddJsonFile($"{SerilogSettings}.{environment}.json", false, true)
                 .AddEnvironmentVariables()
