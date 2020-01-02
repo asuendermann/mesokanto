@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "HelloCoreDal": {
+      "commandName": "Project",
+      "commandLineArgs": "-h -m KT\\sa111962 -d"
+    }
+  }
+}
