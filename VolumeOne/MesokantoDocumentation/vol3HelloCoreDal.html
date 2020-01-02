@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
-<html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,10 +10,9 @@
     <!-- Custom styles for this template -->
     <link href="Content/scrolling-nav.css" rel="stylesheet">
     <link href="Content/Site.css" rel="stylesheet" />
-    <title>MesoKanto Dokumentation</title>
+    <title>EntityFramework - Data Access Layer </title>
 </head>
-<body id="page-top">
-<!-- Navigation -->
+<body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
         <div class="container">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
@@ -32,25 +32,42 @@
     <header class="bg-primary text-white">
         <div class="container text-center">
             <h1>Willkommen beim MesoKanto Projekt</h1>
-            <div class="lead">Dokumentationsseiten des MesoKanto Projekts</div>
+            <div class="lead">Kapitel 3 . Projekt HelloCoreDal . EntityFramework - Data Access Layer</div>
         </div>
     </header>
+
     <section id="content">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <h2>Inhalt</h2>
-                    <ul>
-                        <li><a href="aspNetCore3Update.html" target="_blank">ASP.Net Core 3.0 - Mein persönliches Upgrade</a></li>
-                        <li><a href="vol1HelloCoreSerilog.html" target="_blank">Kapitel 1 . Projekt HelloCore . Serilog - Logging für Core</a></li>
-                        <li><a href="vol2HelloCoreCommandLine.html" target="_blank">Kapitel 2 . Projekt HelloCore . CommandLineParser - Kommandozeile einlesen</a></li>
-                        <li><a href="vol3HelloCoreDal.html" target="_blank">Kapitel 3 . Projekt HelloCoreDal . Entity Framework - Data Access Layer</a></li>
-                    </ul>
-                </div>
-            </div>
+            <h2>Archtiktur</h2>
+            
+            <p>Das Projekt HelloCoreDal fasst drei Elemente einer gegliederten Architektur zusammen:</p>
+            
+            <dl>
+                <dt>Domain Model</dt>
+                <dd>bildet das Datenmodell ab, hier mit den Mitteln des EF umgesetzt</dd>
+                <dt>Data Access Layer</dt>
+                <dd>realisiert den Datenbankzugriff, ebenfalls mittels EF</dd>
+                <dt>Repository</dt>
+                <dd>stellt eine abstrakte Schnittstelle zur die Datenbank zur Verfügung sowie eine konkrete Implementierung für den Zugriff über EF</dd>
+            </dl>
+            
+            <p>
+                Da hier nur eine Datenbánk - MS SslServer - und ein einfaches Datenmodell verwendet werden, ist diese Zusammenfassung in einem Projekt legitim.
+            </p>
+
+            <h2>
+                Benötigte Packages
+            </h2>
+
+            <p>Der CommandLineParser benötigt ein einziges NuGet Package:</p>
+            <ul>
+                <li>CommandLineParser (hier verwendet: V2.7.82)</li>
+            </ul>
+
+
         </div>
     </section>
-    <!-- Footer -->
+
     <footer class="py-5 bg-dark">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; 2019 <a href="mailto:mesokanto@gmx.de">MesoKanto</a></p>
@@ -63,4 +80,3 @@
     <script src="Scripts/scrolling-nav.js"></script>
 </body>
 </html>
-

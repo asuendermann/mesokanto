@@ -21,5 +21,6 @@
     <Content Include="Scripts\jquery-3.3.1.js" />
     <Content Include="vol1HelloCoreSerilog.html" />
     <Content Include="vol2HelloCoreCommandLine.html" />
+    <Content Include="vol3HelloCoreDal.html" />
   </ItemGroup>
 </Project>
