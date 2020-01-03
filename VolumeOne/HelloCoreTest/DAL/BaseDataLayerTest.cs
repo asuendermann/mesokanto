@@ -14,8 +14,6 @@ using HelloCoreDal.DomainModel;
 
 using Microsoft.EntityFrameworkCore;
 
-using NCoreTest;
-
 using NUnit.Framework;
 
 using Serilog;

@@ -4,11 +4,12 @@ using HelloCoreCommons.Configuration;
 
 using HelloCoreDal.DataAccessLayer;
 using HelloCoreDal.DomainModel;
+using HelloCoreDal.Repository;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace NCoreTest {
+namespace HelloCoreTest {
     public static class DependencyInjector {
         public static IServiceProvider GetServiceProvider() {
             var services = new ServiceCollection();
@@ -24,7 +25,6 @@ namespace NCoreTest {
                 return new DemoDbContext(optionsBuilder.Options);
             });
 
-/*
             services.AddScoped<IGenericRepository<Administrator, int>>(provider => {
                 var dbContext = provider.GetService(typeof(DemoDbContext)) as DemoDbContext;
                 return new GenericDbRepository<Administrator, int>(dbContext);
@@ -39,8 +39,6 @@ namespace NCoreTest {
                 var dbContext = provider.GetService(typeof(DemoDbContext)) as DemoDbContext;
                 return new GenericDbRepository<ProjectAdministrator, int>(dbContext);
             });
-*/
-
 
             return services.BuildServiceProvider();
         }
