@@ -1,0 +1,42 @@
+﻿@using HelloCoreAdminMvc.Resources
+@model HelloCoreVm.Models.HomeViewModel
+
+<div class="card mb-3">
+    <div class="card-header">
+        <div class="font-weight-bold">
+            <span class="fa fa-sitemap"></span>
+            @AdminResources.Browser_Title
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-secondary">
+            <div class="text-info font-weight-bold">@AdministratorResources.Administrators</div>
+            <div class="row">
+                <div class="col-lg-9">
+                    @if (0 == Model.AdministratorCount) {
+                        <div class="text-warning">
+                            <span class="fa fa-exclamation-circle"></span>
+                            @AdministratorResources.AdministratorCount_None
+                        </div>
+                    } else if (1 == Model.AdministratorCount) {
+                        <div class="text-success">
+                            <span class="fa fa-check-circle"></span>
+                            @AdministratorResources.AdministratorCount_One
+                        </div>
+                    } else {
+                        <div class="text-success">
+                            <span class="fa fa-check-circle"></span>
+                            @string.Format(AdministratorResources.AdministratorCount_Many, Model.AdministratorCount)
+                        </div>
+                    }
+                </div>
+                <div class="col-lg-3 text-right">
+                    <a asp-area="" asp-controller="Administrator" asp-action="Index" class="btn btn-sm btn-info">
+                        <span class="fa fa-users"></span>
+                        @AdministratorResources.Menu_Administrators
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+﻿@using HelloCoreAdminMvc.Resources
+@model HelloCoreVm.Models.HomeViewModel
+
+<h1>@HomeResources.Index_Title</h1>
+
+<p>
+    @string.Format(HomeResources.Index_Text_1, AdminResources.Browser_Title)
+</p>
+
+<ul class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#tab-status">@HomeResources.TabStatus</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#contact-info">@HomeResources.TabContactInfo</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div id="tab-status" class="tab-pane container active border border-top-0 pt-3 mb-3">
+        @*<partial name="_ProjectSummary.cshtml"/>*@
+    </div>
+    <div id="contact-info" class="tab-pane container border border-top-0 pt-3 mb-3">
+
+        <p>
+            @HomeResources.Index_Text_2
+        </p>
+
+        @*<partial name="_MasterUsers.cshtml"/>*@
+
+    </div>
+</div>

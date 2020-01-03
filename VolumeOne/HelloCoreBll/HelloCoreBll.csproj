@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HelloCoreCommons\HelloCoreCommons.csproj" />
+    <ProjectReference Include="..\HelloCoreDal\HelloCoreDal.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="BusinesLayerLogic\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="9.0.0" />
+    <PackageReference Include="AutoMapper.Extensions.ExpressionMapping" Version="3.0.5" />
+  </ItemGroup>
+
+</Project>

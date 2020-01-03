@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
-using HelloCoreCommons.Attributes;
 using HelloCoreCommons.Configuration;
 using HelloCoreCommons.DomainModel;
 
@@ -16,9 +14,7 @@ using Microsoft.EntityFrameworkCore;
 
 using NUnit.Framework;
 
-using Serilog;
-
-namespace HelloCoreTest.DAL {
+namespace HelloCoreTest {
     public abstract class BaseDataLayerTest {
         protected readonly DemoDbContext DbContext;
 

@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
-<html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -9,10 +10,9 @@
     <!-- Custom styles for this template -->
     <link href="Content/scrolling-nav.css" rel="stylesheet">
     <link href="Content/Site.css" rel="stylesheet" />
-    <title>MesoKanto Dokumentation</title>
+    <title>Business Logic Layer </title>
 </head>
-<body id="page-top">
-<!-- Navigation -->
+<body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
         <div class="container">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
@@ -32,26 +32,40 @@
     <header class="bg-primary text-white">
         <div class="container text-center">
             <h1>Willkommen beim MesoKanto Projekt</h1>
-            <div class="lead">Dokumentationsseiten des MesoKanto Projekts</div>
+            <div class="lead">Kapitel 4 . Projekt HelloCoreBll . Automapper - Busines Logic Layer</div>
         </div>
     </header>
+
     <section id="content">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto">
-                    <h2>Inhalt</h2>
-                    <ul>
-                        <li><a href="aspNetCore3Update.html" target="_blank">ASP.Net Core 3.0 - Mein persönliches Upgrade</a></li>
-                        <li><a href="vol1HelloCoreSerilog.html" target="_blank">Kapitel 1 . Projekt HelloCore . Serilog - Logging für Core</a></li>
-                        <li><a href="vol2HelloCoreCommandLine.html" target="_blank">Kapitel 2 . Projekt HelloCore . CommandLineParser - Kommandozeile einlesen</a></li>
-                        <li><a href="vol3HelloCoreDal.html" target="_blank">Kapitel 3 . Projekt HelloCoreDal . Entity Framework - Data Access Layer</a></li>
-                        <li><a href="vol4HelloCoreBll.html" target="_blank">Kapitel 4 . Projekt HelloCoreBll . Automapper - Busines Logic Layer</a></li>
-                    </ul>
-                </div>
-            </div>
+            <h2>Architektur</h2>
+            <p>
+                Die Klassenbibliothek <code>HelloCoreBll</code> fasst wiederum zwei Elemente der Geschäftslogik zusammen:
+            </p>
+            
+            <dl>
+                <dt>Data Transfer Objects</dt>
+                <dd>
+                    Die DTOs kapseln die Daten des DomainModels für den Transfer zu den Clients der Business Logic.
+                    Der Sinn besteht darin, nach außen andere Modelle sichtbar zu machen als in der DAL abgespeichert sind.
+                    Die Modelle sind an der Geschäftslogik und den Use Cases orientiert. 
+                </dd>
+                <dt>Business Logic Layer</dt>
+                <dd>
+                    stellt Services für die Use Cases des Geschäftsmodells zur Verfügung. Vermittelt zwischen Service Layer und DAL.
+                </dd>
+            </dl>
+            
+            <p>
+                Es ist definitiv nicht sinnvoll und sogar gefährlich, die DM Objekte, die das Reporitory liefert, direkt an die Service Layer weiterzugeben.
+                Durch das Tracking des EF können sich da unbeabsichtigte Manipulationen an den Daten ergeben. Deswegen bildet die BLL die Domain Models auf eigene
+                Data Transfer Object ab.
+            </p>
+            
+            <h2>Automap</h2>
         </div>
     </section>
-    <!-- Footer -->
+
     <footer class="py-5 bg-dark">
         <div class="container">
             <p class="m-0 text-center text-white">Copyright &copy; 2019 <a href="mailto:mesokanto@gmx.de">MesoKanto</a></p>
@@ -64,4 +78,14 @@
     <script src="Scripts/scrolling-nav.js"></script>
 </body>
 </html>
+<!DOCTYPE html>
 
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+
+</body>
+</html>

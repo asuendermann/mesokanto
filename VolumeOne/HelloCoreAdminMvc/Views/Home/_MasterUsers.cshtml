@@ -1,0 +1,21 @@
+﻿@model HelloCoreVm.Models.HomeViewModel
+
+<div class="mt-3">
+    @foreach (var adminUser in Model.Auditables) {
+        <div class="row mb-3">
+            <div class="col-md-3">
+                @adminUser.Name
+            </div>
+            <div class="col-md-6">
+                <a href="mailto:@adminUser.Email" class="btn btn-link pt-0 pb-0">
+                    <span class="fa fa-envelope"></span>
+                    @adminUser.Email
+                </a>
+            </div>
+            <div class="col-md-3">
+                <span class="fa fa-phone"></span>
+                @adminUser.Phone
+            </div>
+        </div>
+    }
+</div>

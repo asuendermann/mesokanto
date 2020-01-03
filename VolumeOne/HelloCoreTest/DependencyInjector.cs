@@ -1,10 +1,14 @@
 ﻿using System;
 
+using HelloCoreBll.BusinesLayerLogic;
+
 using HelloCoreCommons.Configuration;
 
 using HelloCoreDal.DataAccessLayer;
 using HelloCoreDal.DomainModel;
 using HelloCoreDal.Repository;
+
+using HelloCoreVm;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +43,10 @@ namespace HelloCoreTest {
                 var dbContext = provider.GetService(typeof(DemoDbContext)) as DemoDbContext;
                 return new GenericDbRepository<ProjectAdministrator, int>(dbContext);
             });
+
+            services.AddScoped<IAdministratorsBllManager, AdministratorsBllManager>();
+
+            services.AddScoped<IViewModelManager, ViewModelManager>();
 
             return services.BuildServiceProvider();
         }

@@ -1,0 +1,47 @@
+{
+  "Serilog": {
+    "MinimumLevel": "Fatal",
+    "WriteTo": [
+      {
+        "Name": "MSSqlServer",
+        "Args": {
+          "restrictedToMinimumLevel": "Information",
+          "connectionString": "LocalMesokantoDb",
+          "tableName": "Serilog",
+          "autoCreateSqlTable": "true",
+          "columnOptionsSection": {
+            "disableTriggers": true,
+            "addStandardColumns": [ "LogEvent" ],
+            "removeStandardColumns": [ "MessageTemplate", "Properties" ],
+            "additionalColumns": [
+              {
+                "ColumnName": "MachineName",
+                "DataType": "nvarchar",
+                "AllowNull": true,
+                "DataLength": 64
+              },
+              {
+                "ColumnName": "ThreadId",
+                "DataType": "int"
+              },
+              {
+                "ColumnName": "ProjectName",
+                "DataType": "nvarchar",
+                "AllowNull": true,
+                "DataLength": 128
+              }
+            ],
+            "timeStamp": {
+              "columnName": "TimestampUTC",
+              "convertToUtc": true
+            },
+            "logEvent": {
+              "excludeAdditionalProperties": true,
+              "excludeStandardColumns": true
+            }
+          }
+        }
+      }
+    ]
+  }
+}

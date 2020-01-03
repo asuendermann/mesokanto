@@ -22,5 +22,6 @@
     <Content Include="vol1HelloCoreSerilog.html" />
     <Content Include="vol2HelloCoreCommandLine.html" />
     <Content Include="vol3HelloCoreDal.html" />
+    <Content Include="vol4HelloCoreBll.html" />
   </ItemGroup>
 </Project>

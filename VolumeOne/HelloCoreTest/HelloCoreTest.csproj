@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\HelloCoreBll\HelloCoreBll.csproj" />
     <ProjectReference Include="..\HelloCoreDal\HelloCoreDal.csproj" />
+    <ProjectReference Include="..\HelloCoreVm\HelloCoreVm.csproj" />
   </ItemGroup>
 
   <ItemGroup>
