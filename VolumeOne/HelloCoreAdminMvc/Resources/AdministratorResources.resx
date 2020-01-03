@@ -129,7 +129,25 @@
   <data name="Administrators" xml:space="preserve">
     <value>Administratoren</value>
   </data>
+  <data name="MasterAdministratorCount_Many" xml:space="preserve">
+    <value>{0} Masteradministratoren sind registriert.</value>
+  </data>
+  <data name="MasterAdministratorCount_None" xml:space="preserve">
+    <value>Es ist kein Masteradministrator registriert.</value>
+  </data>
+  <data name="MasterAdministratorCount_One" xml:space="preserve">
+    <value>Ein Masteradministrator ist registriert.</value>
+  </data>
   <data name="Menu_Administrators" xml:space="preserve">
     <value>Administratoren</value>
+  </data>
+  <data name="ProjectAdministratorCount_Many" xml:space="preserve">
+    <value>{0} Projektadministratoren sind registriert.</value>
+  </data>
+  <data name="ProjectAdministratorCount_None" xml:space="preserve">
+    <value>Es ist kein Projektadministrator registriert.</value>
+  </data>
+  <data name="ProjectAdministratorCount_One" xml:space="preserve">
+    <value>Ein Projektadministrator ist registriert.</value>
   </data>
 </root>

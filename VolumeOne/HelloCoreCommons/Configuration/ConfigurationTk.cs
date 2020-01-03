@@ -81,12 +81,18 @@ namespace HelloCoreCommons.Configuration {
             return configuration?.GetSectionValue(SectionApplicationSettings, key, defaultValue);
         }
 
-        public static string InitialAssemblyName {
+        public static string InitialAssemblyName { get; }
+
+        static ConfigurationTk() {
+            InitialAssemblyName = FindInitialAssemblyName;
+        }
+
+        private static string FindInitialAssemblyName {
             get {
                 var frames = new StackTrace().GetFrames();
                 var initialAssembly = (from f in frames
                         select f.GetMethod()?.ReflectedType?.Assembly.GetName().Name
-                    ).Distinct().Last();
+                    ).Last();
                 return initialAssembly;
             }
         }

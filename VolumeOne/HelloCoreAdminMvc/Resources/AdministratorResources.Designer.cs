@@ -97,11 +97,65 @@ namespace HelloCoreAdminMvc.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} Masteradministratoren sind registriert..
+        /// </summary>
+        public static string MasterAdministratorCount_Many {
+            get {
+                return ResourceManager.GetString("MasterAdministratorCount_Many", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Es ist kein Masteradministrator registriert..
+        /// </summary>
+        public static string MasterAdministratorCount_None {
+            get {
+                return ResourceManager.GetString("MasterAdministratorCount_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ein Masteradministrator ist registriert..
+        /// </summary>
+        public static string MasterAdministratorCount_One {
+            get {
+                return ResourceManager.GetString("MasterAdministratorCount_One", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Administratoren.
         /// </summary>
         public static string Menu_Administrators {
             get {
                 return ResourceManager.GetString("Menu_Administrators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} Projektadministratoren sind registriert..
+        /// </summary>
+        public static string ProjectAdministratorCount_Many {
+            get {
+                return ResourceManager.GetString("ProjectAdministratorCount_Many", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Es ist kein Projektadministrator registriert..
+        /// </summary>
+        public static string ProjectAdministratorCount_None {
+            get {
+                return ResourceManager.GetString("ProjectAdministratorCount_None", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ein Projektadministrator ist registriert..
+        /// </summary>
+        public static string ProjectAdministratorCount_One {
+            get {
+                return ResourceManager.GetString("ProjectAdministratorCount_One", resourceCulture);
             }
         }
     }

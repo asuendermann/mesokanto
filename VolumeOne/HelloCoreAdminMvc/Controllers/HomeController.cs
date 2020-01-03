@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HelloCoreAdminMvc.Controllers {
-    [Authorize(Policy = IsWindowsAdminRequirement.IsWindowsAdminRequirementPolicy)]
     public class HomeController : AbstractAdminController {
 
         public HomeController(IServiceProvider serviceProvider) {

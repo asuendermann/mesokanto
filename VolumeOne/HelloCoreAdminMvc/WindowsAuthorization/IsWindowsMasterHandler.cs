@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Threading.Tasks;
 
+using HelloCoreBll.BusinesLayerLogic;
+
 using Microsoft.AspNetCore.Authorization;
 
 namespace HelloCoreAdminMvc.WindowsAuthorization {
     public class IsWindowsMasterHandler : AuthorizationHandler<IsWindowsMasterRequirement> {
-        private readonly IWindowsAuthorizationService appAuthorizationService;
+        private readonly IAdministratorsBllManager adminBllManager;
 
-        public IsWindowsMasterHandler(IWindowsAuthorizationService appAuthorizationService) {
-            this.appAuthorizationService = appAuthorizationService;
+        public IsWindowsMasterHandler(IAdministratorsBllManager adminBllManager) {
+            this.adminBllManager = adminBllManager;
         }
 
         protected override Task HandleRequirementAsync(
@@ -22,7 +24,7 @@ namespace HelloCoreAdminMvc.WindowsAuthorization {
                 throw new ArgumentNullException(nameof(requirement));
             }
 
-            if (appAuthorizationService.IsMaster(context.User.Identity.Name)) {
+            if (adminBllManager.IsMaster(context.User.Identity.Name)) {
                 context.Succeed(requirement);
             }
 

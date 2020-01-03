@@ -29,6 +29,38 @@
                             @string.Format(AdministratorResources.AdministratorCount_Many, Model.AdministratorCount)
                         </div>
                     }
+                    @if (0 == Model.MasterAdministratorCount) {
+                        <div class="text-warning">
+                            <span class="fa fa-exclamation-circle"></span>
+                            @AdministratorResources.MasterAdministratorCount_None
+                        </div>
+                    } else if (1 == Model.MasterAdministratorCount) {
+                        <div class="text-success">
+                            <span class="fa fa-check-circle"></span>
+                            @AdministratorResources.MasterAdministratorCount_One
+                        </div>
+                    } else {
+                        <div class="text-success">
+                            <span class="fa fa-check-circle"></span>
+                            @string.Format(AdministratorResources.MasterAdministratorCount_Many, Model.MasterAdministratorCount)
+                        </div>
+                    }
+                    @if (0 == Model.ProjectAdministratorCount) {
+                        <div class="text-warning">
+                            <span class="fa fa-exclamation-circle"></span>
+                            @AdministratorResources.MasterAdministratorCount_None
+                        </div>
+                    } else if (1 == Model.MasterAdministratorCount) {
+                        <div class="text-success">
+                            <span class="fa fa-check-circle"></span>
+                            @AdministratorResources.MasterAdministratorCount_One
+                        </div>
+                    } else {
+                        <div class="text-success">
+                            <span class="fa fa-check-circle"></span>
+                            @string.Format(AdministratorResources.MasterAdministratorCount_Many, Model.ProjectAdministratorCount)
+                        </div>
+                    }
                 </div>
                 <div class="col-lg-3 text-right">
                     <a asp-area="" asp-controller="Administrator" asp-action="Index" class="btn btn-sm btn-info">

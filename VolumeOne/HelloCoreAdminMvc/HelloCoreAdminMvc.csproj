@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="WindowsAuthorization\IWindowsAuthorizationService.cs" />
+    <Compile Remove="WindowsAuthorization\WindowsAuthorizationService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="serilogsettings.json" />
   </ItemGroup>
 

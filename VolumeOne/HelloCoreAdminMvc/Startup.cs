@@ -1,5 +1,3 @@
-using System.IO;
-
 using HelloCoreAdminMvc.Resources;
 using HelloCoreAdminMvc.WindowsAuthorization;
 
@@ -48,7 +46,6 @@ namespace HelloCoreAdminMvc {
                     WindowsAuthenticationSchemeHandler.SchemaName);
             });
 
-            services.AddScoped<IWindowsAuthorizationService, WindowsAuthorizationService>();
             services.AddScoped<IAuthorizationHandler, IsWindowsAdminHandler>();
             services.AddScoped<IAuthorizationHandler, IsWindowsMasterHandler>();
             services.AddAuthorization(options => {

@@ -1,11 +1,11 @@
 {
   "Serilog": {
-    "MinimumLevel": "Fatal",
+    "MinimumLevel": "Verbose",
     "WriteTo": [
       {
         "Name": "MSSqlServer",
         "Args": {
-          "restrictedToMinimumLevel": "Information",
+          "restrictedToMinimumLevel": "Verbose",
           "connectionString": "LocalMesokantoDb",
           "tableName": "Serilog",
           "autoCreateSqlTable": "true",
