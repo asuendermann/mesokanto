@@ -1,4 +1,4 @@
-﻿namespace HelloCoreCommons.Models {
+﻿namespace HelloCoreCommons.DomainModel {
     public interface IAdministrator<T> : IAuditableBase<T> {
 
         string UserIdentityName { get; set; }

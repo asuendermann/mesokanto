@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20200103085514_Base.cs" />
+    <Compile Remove="Migrations\20200103085514_Base.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="DomainModel\" />
     <Folder Include="Repository\" />
   </ItemGroup>

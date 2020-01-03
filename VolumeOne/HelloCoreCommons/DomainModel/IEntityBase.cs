@@ -1,4 +1,4 @@
-﻿namespace HelloCoreCommons.Models {
+﻿namespace HelloCoreCommons.DomainModel {
 
     /// <summary>
     /// 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HelloCoreCommons.Models {
+namespace HelloCoreCommons.DomainModel {
     public interface IAuditableBase<T> : IEntityBase<T> {
         /// <summary>
         ///     allow tracking of the database entry lifecycle:

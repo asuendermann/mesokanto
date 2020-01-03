@@ -16,12 +16,7 @@ namespace HelloCoreDal.DataAccessLayer {
         public DemoDbContext CreateDbContext(string[] args) {
             var environment = Environment.GetEnvironmentVariable(ConfigurationTk.AspnetcoreEnvironment) ??
                               "Development";
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile($"{ConfigurationTk.AppSettings}.json", false, true)
-                .AddJsonFile($"{ConfigurationTk.AppSettings}.{environment}.json", false, true)
-                .Build();
-
+            var configuration = ConfigurationTk.ConfigureFromFile();
             return CreateDbContext(args, configuration);
         }
 

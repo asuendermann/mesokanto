@@ -1,13 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 using HelloCoreCommons.Attributes;
-using HelloCoreCommons.Models;
+using HelloCoreCommons.DomainModel;
 
 namespace HelloCoreDal.DomainModel {
-    public abstract class Administrator : AbstractAuditableBase<int>, IAdministrator<int>, ITypePerHierarchy {
-        [MaxLength(64)]
-        public string Discriminator { get; set; }
-
+    public class Administrator : AbstractTypePerHierarchyBase<int>, IAdministrator<int>, ITypePerHierarchy {
         [MaxLength(32)]
         [Required]
         public string UserIdentityName { get; set; }

@@ -2,7 +2,7 @@
 
 using HelloCoreCommons.CommandLine;
 
-namespace HelloCoreDal.DataAccessLayer {
+namespace HelloCoreDal {
     public class DbContextArgs : BaseCommandLineOptions {
 
         [Option('d', longName: "DeleteIfExists", Required = false, Default = false,

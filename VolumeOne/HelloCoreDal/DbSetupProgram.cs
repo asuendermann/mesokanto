@@ -16,9 +16,9 @@ namespace HelloCoreDal {
         }
 
         public override void Execute() {
-            var configuration = ConfigurationTk.ConfigureFromFile();
+            var Configuration = ConfigurationTk.ConfigureFromFile();
 
-            using var context = new DemoDbContextFactory().CreateDbContext(Args, configuration);
+            using var context = new DemoDbContextFactory().CreateDbContext(Args, Configuration);
 
             if (Options.DeleteIfExists) {
                 context.Database.EnsureDeleted();

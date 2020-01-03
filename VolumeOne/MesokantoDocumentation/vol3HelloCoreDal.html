@@ -2,81 +2,302 @@
 
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <!-- Bootstrap core CSS -->
     <link href="Content/bootstrap.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <link href="Content/scrolling-nav.css" rel="stylesheet">
-    <link href="Content/Site.css" rel="stylesheet" />
+    <link href="Content/Site.css" rel="stylesheet"/>
     <title>EntityFramework - Data Access Layer </title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
-        <div class="container">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="collapsibleNavbar">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.html">
-                            Startseite
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-    <header class="bg-primary text-white">
-        <div class="container text-center">
-            <h1>Willkommen beim MesoKanto Projekt</h1>
-            <div class="lead">Kapitel 3 . Projekt HelloCoreDal . EntityFramework - Data Access Layer</div>
-        </div>
-    </header>
-
-    <section id="content">
-        <div class="container">
-            <h2>Archtiktur</h2>
-            
-            <p>Das Projekt HelloCoreDal fasst drei Elemente einer gegliederten Architektur zusammen:</p>
-            
-            <dl>
-                <dt>Domain Model</dt>
-                <dd>bildet das Datenmodell ab, hier mit den Mitteln des EF umgesetzt</dd>
-                <dt>Data Access Layer</dt>
-                <dd>realisiert den Datenbankzugriff, ebenfalls mittels EF</dd>
-                <dt>Repository</dt>
-                <dd>stellt eine abstrakte Schnittstelle zur die Datenbank zur Verfügung sowie eine konkrete Implementierung für den Zugriff über EF</dd>
-            </dl>
-            
-            <p>
-                Da hier nur eine Datenbánk - MS SslServer - und ein einfaches Datenmodell verwendet werden, ist diese Zusammenfassung in einem Projekt legitim.
-            </p>
-
-            <h2>
-                Benötigte Packages
-            </h2>
-
-            <p>Der CommandLineParser benötigt ein einziges NuGet Package:</p>
-            <ul>
-                <li>CommandLineParser (hier verwendet: V2.7.82)</li>
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top" id="mainNav">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">
+                        Startseite
+                    </a>
+                </li>
             </ul>
-
-
         </div>
-    </section>
+    </div>
+</nav>
+<header class="bg-primary text-white">
+    <div class="container text-center">
+        <h1>Willkommen beim MesoKanto Projekt</h1>
+        <div class="lead">Kapitel 3 . Projekt HelloCoreDal . EntityFramework - Data Access Layer</div>
+    </div>
+</header>
 
-    <footer class="py-5 bg-dark">
-        <div class="container">
-            <p class="m-0 text-center text-white">Copyright &copy; 2019 <a href="mailto:mesokanto@gmx.de">MesoKanto</a></p>
-        </div>
-    </footer>
-    <!-- Bootstrap core JavaScript -->
-    <script src="Scripts/jquery-3.3.1.js"></script>
-    <script src="Scripts/bootstrap.js"></script>
+<section id="content">
+<div class="container">
+<h2>Architektur</h2>
 
-    <script src="Scripts/scrolling-nav.js"></script>
+<p>
+    Mein Fernzeil ist eine MVC-Anwendung mit Windows-Authtentisierung,
+    die eine Verwaltungsoberfläche für die in einer MS SqlServer Datenbank abgelegte Projektverwaltung zur Verfügung stellt.
+    Technisch würde ich dafür gerne den vollen Architekturstack implementieren.
+    Den Anfang macht hierbei die Datenzugriffsschicht mit dem DomainModel, der eigentlichen Data Access Layer und einem Repository.
+</p>
+
+<p>Das Projekt HelloCoreDal ist eine Consle App und fasst drei Elemente einer gegliederten Architektur zusammen:</p>
+
+<dl>
+    <dt>Domain Model</dt>
+    <dd>bildet das Datenmodell ab, hier mit den Mitteln des EF umgesetzt</dd>
+    <dt>Data Access Layer</dt>
+    <dd>realisiert den Datenbankzugriff, ebenfalls mittels EF</dd>
+    <dt>Repository</dt>
+    <dd>stellt eine abstrakte Schnittstelle zur die Datenbank zur Verfügung sowie eine abstrakte Basisklasse für den Zugriff über EF</dd>
+</dl>
+
+<p>
+    Da hier nur eine Datenbank - MS SqlServer - und ein einfaches Datenmodell verwendet werden, ist diese Zusammenfassung in einem Projekt legitim.
+    Top-Level Ordner <code>DomainModel</code>, <code>DataAccessLayer</code> und <code>Repository</code> stellen die Gliederung bzw. Ordnung intern wieder her.
+</p>
+
+<p>
+    Außerdem gibt es ein kleines Programm <code>DbSetupProgram</code>, das eine erste Initialisierung der Datenbank macht, und das Projekt unterstützt Migrations.
+</p>
+
+<p>
+    Hinzugekommen ist die Klassenbibiliothek <code>HelloCoreCommons</code>, in der sich verschiedene Projekt- und schichtübergeifend genutzte Klassen befinden.
+</p>
+
+<p>
+    Außerdem gibt es ein Projekt <code>HelloCoreTest</code> mit einer Reihe von Unit-Tests, um bestimmte Eigenschaften zu demonstrieren.
+</p>
+
+<h2>
+    Benötigte Packages
+</h2>
+
+<p>Folgende EntityFramework Core Packages werden benötigt:</p>
+
+<ul>
+    <li>Microsoft.EntityFrameworkCore</li>
+    <li>Microsoft.EntityFrameworkCore.Design</li>
+    <li>Microsoft.EntityFrameworkCore.SqlServer</li>
+    <li>Microsoft.EntityFrameworkCore.Tools</li>
+</ul>
+
+<h2>DomainModel</h2>
+
+<h3>DomainModel Best Practices</h3>
+
+<p>
+    Das Package <code>HelloCore.DomainModel</code> reflektiert eine BestPractice für DomainModels:
+    Alle Datenbankobjekte erhalten einen von der Datenbank verwalteten Key und vier Felder, die eine Historie für jeden Datenbankeintrag speichern.
+</p>
+
+<dl>
+    <dt>Interface IEntityBase&lt;TId&gt; und Basisklasse AbstractEntityBase&lt;TId&gt;</dt>
+    <dd>
+        deklariert den UniqueKey <code>TId Id</code>. Empfohlene Typen für den generischen Typ <code>TId</code> sind:
+        <ul>
+            <li><code>int</code>: wird abgebildet auf den Datenbanktyp <code>int</code> und ist der Regelfall</li>
+            <li><code>long</code>: wird abgebildet auf den Datenbanktyp <code>bigintint</code> und wird empfohlen, wenn die erwartete Anzahl von Einträgen den Wertebereich von <code>int</code> übersteigt</li>
+        </ul>
+    </dd>
+    <dt>Interface IAuditableBase&lt;TId&gt; : IEntityBase&lt;TId&gt; und Basisklasse AbstractAuditableBase&lt;TId&gt;</dt>
+    <dd>
+        liefert vier Felder für die Verfolgung der Historie eines Datenbankeintrages:
+        <ul>
+            <li><code>DateTime CreatedAt</code>: Das Erstellungsdatum eines Objektes.</li>
+            <li><code>string CreatedBy</code>: bezeichnet die Quelle eines Objektes.</li>
+            <li><code>DateTime? ModifiedeAt</code>: Das Datum der letzten Änderung eines Objektes.</li>
+            <li><code>string ModifiedBy</code>: bezeichnet die Quelle der letzten Änderung eines Objektes.</li>
+        </ul>
+    </dd>
+    <dt>Interface ITypePerHierarchy und Basisklasse AbstractTypePerHierarchyBase&lt;TId&gt;</dt>
+    <dd>
+        liefert ein Feld:
+        <ul>
+            <li><code>string Discriminator</code>: wird im TypePerHierachy Ansatz verwendet, um die abgespeicherte Subklasse jedes Eintrages zu identifizieren</li>
+        </ul>
+    </dd>
+</dl>
+
+<p>In allen Basisklassen sind die einzelnen Felder mit üblicherweise passenden DataAnnotations versehen.</p>
+
+<h3>DomainModel Klassen</h3>
+
+<p>
+    Das DomainModel erhält eine Basisklasse <code>Administrator</code> mit zwei abgeleiteten Klassen <code>ProjectAdministrator</code> und <code>MasterAdministrator</code>.
+    Diese Klassen bilden eine Hierarchie von Windows-Benutzern ab, die im Portal unterschiedliche Rollen und Rechte haben werden.
+    MasterAdministrator darf alles, ProjektAdministrator wird ein paar Einschränkungen haben.
+    Die Klassenhierarchie dient dazu, den Type Per Hierarchy (TPH) Ansatz zu demonstrieren.
+    Die Klasse <code>Administrator</code> enthält alle benötigten Felder und ist bewusst nicht <code>abstract</code>, weil ich auch die Gesamtsicht auf alle Administrators haben will.
+    Dafür muss eine Instanziierung der Basisklasse möglich sein.
+    Die beiden Subklssen steuern keine neuen Properties bei, obwohl das im TPH Ansatz möglich wäre. Mich interessiert hier die Idee, ein Rollenmodell über TPH abzubilden.
+</p>
+
+<h3>DataAnnotations, Attribute und Validierung am Beispiel von E-Mail-Adressen</h3>
+
+<p>
+    Die Klasse <code>Administrator</code> hat ein Feld <code>string Email</code>, das für die Aufnahme einer E-Mail-Adresse vorgesehen ist.
+    Es gibt eine DataAnnotiation <code>System.ComponentModel.DataAnnotations.EmailAddressAttribute</code>,
+    die sich auf den ersten Blick für dieses Feld anbietet in der Annahme, dass diese Annotation eine automatische Validierung des Feldinhaltes nach sich zieht.
+    Dies ist leider nicht der Fall - nur Attribute, die von <code>System.ComponentModel.DataAnnotations.ValidationAttribute</code> abgeleitet sind,
+    werden von der automatischen Validierung erfasst. <code>EmailAddressAttribute</code> ist leider nur eine Implementierung von
+    <code>System.ComponentModel.DataAnnotations.DataTypeAttribute</code> - also ganz nett, aber wirkungslos.
+</p>
+
+<p>
+    Das benötigte ValidationAttribute ist die bewährte selbst geschriebene Klasse <code>HelloCoreCommons.Attributes.EmailAttribute</code>.
+</p>
+
+<h2>DataAccessLayer: Anmerkungen zur DbContext Implementierung</h2>
+
+<p>
+    Der <code>DemoDbContext</code> ist die Implementierung des Dbcontext für die Beispiellösung.
+    Da ich auf eine Wiederverwendung hoffe, habe ich eine Basisklasse <code>BaseDbContext</code> extrahiert.
+    Diese Basisklasse enthält einige Best Practices, die ich in jedem DbContext wiederverwenden möchte.
+    Sie ist nicht <code>abstract</code>, weil die Basisklasse <code>DbContext</code>
+    aus dem EF selbst auch nicht als abstrakt gekennzeichnet ist und es keine neuen abstrakten Methoden gibt, die das erfordern würden.
+</p>
+
+<h3>BaseDbContext</h3>
+
+<p>
+    Die Klasse <code>BaseDbContext</code> überschreibt die Methode <code>SaveChanges</code>,
+    um mit Hilfe von <code>MarkEntries</code> alle Datenbankeinträge vom Typ <code>AbstractAuditableBase&lt;int&gt;</code>
+    mit passenden Zeitstempeln und Quellen zu versehen.
+    Verwendet wird für die Zeitstempel UTC Zeit und als Quellenangabe der Name der ersten aufrufenden den Assembly in der Hierarchie.
+    Dann wird mit <code>ValidateChanges</code> eine Validierung der Einträge gemacht.
+    Die Validierung ist so programmiert, dass alle neu angelegten oder veränderten Objekte validiert werden.
+    Alle Fehler werden ins Logging geschrieben und im Fehlerfall eine <code>ValidationException</code> geworfen,
+    die nochmal alle Fehlermeldungstexte enthält.
+</p>
+
+<p>
+    Außerdem gibt es eine Methode <code>DetachAllEntities</code>, die alle Änderungen im ChangeTracker rückgängig gemacht.
+    Brauche ich in meinen UnitTests gelegentlich.
+</p>
+
+<h3>DemoDbContext</h3>
+
+<p>
+    Die Klasse <code>DemoDbContext</code> enthält das konkrete Datenmodell und die Methode <code>OnModelCreating</code>.
+    Im Wesentlichen wird das Datenmodell über die Fluent API des EF festgelegt.
+</p>
+
+<p>
+    Das Datenmodell umfasst drei DbSets für Administrator, ProjectAdministrator und MasterAdministrator,
+    die im ModelBuilder alle in die Tabelle "Administrators" geschrieben werden.
+    Als TPH Discriminator wird der jeweilige konkrete Klassenname verwendet.
+    Schließlich wird noch das Feld <code>UserIdentityName</code> mit einem Unique Index versehen.
+    Die Klasse <code>IndexAttribute</code> aus dem alten EF gibt es in der Core Version nicht mehr, die Fluent API wird favorisiert.
+</p>
+
+<h3>DbSetupProgram</h3>
+
+<p>
+    Für Konsolenprogramme habe ich eine kleine Basisklasse <code>HelloCoreCommons.CommandLine.AbstractCommandLineProgram</code>,
+    die eine Steuerung über die Kommandozeile erlaubt, Serilog konfiguriert und den ganzen Ablauf in einen try/catch/finally Block kapselt.
+    Es gibt eine Standardoption <code>-h</code>. Ist diese Option gesetzt, hält das Programm immer im finally Block an.
+    Außerdem wird noch vor dem Start geprüft, ob bereits eine Instanz des Programms läuft.
+    Das kommt bei langlaufenden Scheduled Tasks zumindest bei mir gelegentlich vor.
+    Der Check verhindert dann, dass mehrere Programminstanzen sich behindern.
+</p>
+
+<p>
+    Das eigentliche DbSetupProgram hat zwei zusätzliche Kommandozeilenparameter:
+</p>
+
+<dl>
+    <dt>DeleteIfExists [-d]</dt>
+    <dd>wenn dieser Parameter gesetzt ist, wird eine existierende Datenbank gelöscht.</dd>
+    <dt>MasterUserIdentity [-m] - Required </dt>
+    <dd>dieser Parameter muss gesetzt werden und den vollständigen Benutzernamen des ersten MasterAdministrator enthalten, einschließlich Domäne.</dd>
+</dl>
+
+<p>Das Programm löscht - optional - die vorhandene Datenbank, legt sie neu an und fügt einen ersten MasterAdministrator ein.</p>
+
+<p>Die appsettings.json Datei liefert den ConnectionString. Fürs Logging wird Serilog mit Console Sinke verwendet.</p>
+
+<h2>Arbeiten mit Migrations</h2>
+
+<p>
+    Das DbSetupProgram ist eine Hau-Ruck-Methode, die bei größeren und langlebigen Projekten nicht wirklich empfehlenswert ist.
+    Wenn abzusehen ist, dass es Erweiterungen im Datenmodell geben wird (wann ist das nicht so?), empfiehlt sich das Anlegen der Datenbank über Migrations.
+    So kann das Datenmodell auch später noch erweitert werden, ohne dass die Datenbank vorher gelöscht werden muss.
+</p>
+
+<p>Zuerst einmal sind ein paar Vorbedingungen für das Arbeiten mit Migrations zu erfüllen:</p>
+
+<ol>
+    <li>
+        Die Migrations sollten im DataAccessLayer Projekt liegen - dort, wo auch der DbContext deklariert wird.
+        Das macht die Sache einfacher.
+    </li>
+    <li>Das NuGet Package <code>Microsoft.EntityFrameworkCore.Tools</code> muss installiert werden </li>
+    <li>
+        Die DbContext Implementierung muss einen Parameterlosen Konstruktor habenb<br/>
+        oder - dies ist der empfohlene Weg - <br/>
+        eine Implementierung des <code>IDesignTimeDbContextFactory&lt;DbContext&gt;</code> muss zur Verfügung gestellt werden.
+    </li>
+</ol>
+
+<p>Die Klasse <code>DemoDbContextFactory</code> liefert die <code>IDesignTimeDbContextFactory</code> im HelloCoreDal Projekt.</p>
+
+<p>
+    Dann sind folgende Schritte nacheinander auszuführen (Reihenfolge ist wichtig!):
+</p>
+
+<ol>
+    <li>
+        siecherstellen, dass die DbContextFactory eine Verbindung zum gewünschen Datenbankserver herstellen kann
+    </li>
+    <li>
+        Zieldatenbank gegebenenfalls löschen
+    </li>
+    <li>
+        Package Manager Console öffnen
+    </li>
+    <li>
+        <code>HelleCoreDal</code> als Startup Projekt sowohl im Solution Manager als auch in der Package Manager Console auswählen
+    </li>
+    <li>
+        in der Package Manager Console<br/><code>add-migration &lt;migration-name&gt; -Context DemoDbContext</code> <br/> aufrufen.
+        Erzeugt, sofern nicht vorhanden, einen Ordner <code>Migrations</code> im 
+        Projekt und legt dort ein Migrations-Skript unter dem angegebene Namen an.
+        Das Skript erhält noch einen Zeitstempel im Namen.
+    </li>
+    <li>
+        <code>update-database -verbose </code> aufrufen, um die erzeute Migration auszuführen.
+        Der Parameter <code>-verbose</code> erzeugt eine detailliertere Ausgabe.
+    </li>
+    <li>
+        <code>update-database &lt;migration-name&gt; </code> macht alle Migrationen bis zur genannten rückgängig.
+        Das Datenbankschema wird dann auf den Stand dieser Migration zuückgesetzt. 
+        Ein <code>migration-name</code> von 0 rollt alle migrationen komplett zurück.
+    </li>
+    <li>
+        der Afruf <code>remove-database</code> löscht immer das jeweils jüngste Skript aus dem "Migrations" Ordner.
+        Vorher muss die Zieldatenbank allerdings auf einen Stand vor diese Migration zuückgesetzt werden.
+    </li>
+</ol>
+
+</div>
+</section>
+
+<footer class="py-5 bg-dark">
+    <div class="container">
+        <p class="m-0 text-center text-white">Copyright &copy; 2019 <a href="mailto:mesokanto@gmx.de">MesoKanto</a></p>
+    </div>
+</footer>
+<!-- Bootstrap core JavaScript -->
+<script src="Scripts/jquery-3.3.1.js"></script>
+<script src="Scripts/bootstrap.js"></script>
+
+<script src="Scripts/scrolling-nav.js"></script>
 </body>
 </html>
