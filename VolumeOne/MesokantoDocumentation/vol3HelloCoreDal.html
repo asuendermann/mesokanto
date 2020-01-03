@@ -226,9 +226,9 @@
 <h2>Arbeiten mit Migrations</h2>
 
 <p>
-    Das DbSetupProgram ist eine Hau-Ruck-Methode, die bei größeren und langlebigen Projekten nicht wirklich empfehlenswert ist.
-    Wenn abzusehen ist, dass es Erweiterungen im Datenmodell geben wird (wann ist das nicht so?), empfiehlt sich das Anlegen der Datenbank über Migrations.
-    So kann das Datenmodell auch später noch erweitert werden, ohne dass die Datenbank vorher gelöscht werden muss.
+    Das <code>DbSetupProgram</code> mit der Option <code>-d</code> ist eine Hau-Ruck-Methode, die bei größeren und langlebigen Projekten nicht wirklich empfehlenswert ist.
+    Wenn abzusehen ist, dass es Erweiterungen im Datenmodell geben wird (wann ist das nicht so?), empfiehlt sich das Anlegen und Pflegen der Datenbank über Migrations.
+    So kann das Datenmodell auch später noch nach und nach erweitert werden, ohne dass die Datenbank vorher gelöscht werden muss.
 </p>
 
 <p>Zuerst einmal sind ein paar Vorbedingungen für das Arbeiten mit Migrations zu erfüllen:</p>
@@ -278,14 +278,44 @@
     <li>
         <code>update-database &lt;migration-name&gt; </code> macht alle Migrationen bis zur genannten rückgängig.
         Das Datenbankschema wird dann auf den Stand dieser Migration zuückgesetzt. 
-        Ein <code>migration-name</code> von 0 rollt alle migrationen komplett zurück.
+        Ein <code>migration-name</code> von 0 rollt alle Migrationen komplett zurück.
     </li>
     <li>
-        der Afruf <code>remove-database</code> löscht immer das jeweils jüngste Skript aus dem "Migrations" Ordner.
+        der Aufruf <code>remove-database</code> löscht immer das jeweils jüngste Skript aus dem "Migrations" Ordner.
         Vorher muss die Zieldatenbank allerdings auf einen Stand vor diese Migration zuückgesetzt werden.
     </li>
 </ol>
 
+<p>
+    Die erzeugten Tabellen werden von der Migration nicht mit Inhalten gefüllt - die Erstinitialisierung muss auf anderem Wege erfolgen.
+    Siehe dazu auch <a href="https://docs.microsoft.com/en-us/ef/core/modeling/data-seeding" target="_blank">Data Seeding - EF Core | Microsoft Docs</a>.
+    Im <code>HelloCoreDal</code> Projekt kommt dann das <code>DbSetupProgram</code> wieder ins Spiel - 
+    natürlich ohne die Option <code>-d</code> für das vorherige Löschen der Datenbank zu setzen.
+</p>
+    
+<p>
+    Wenn später Erweiterungen oder Änderungen am Datenmodell vorgenommen werden, 
+    wird einfach eine weiteres Migrationsskript erzeugt und angewandt, ohne dass die vorhandenen Datenbankinhalte verloren gehen.
+</p>
+            
+<p>
+    In der Datenbank legt die erste Migration die Tabelle <code>__EFMigrationsHistory</code> an, in der die angewandten Migationen aufgelistet werden.
+    Dort kann man sich den aktuellen Stand der Datenbank anschauen.
+</p>
+
+<p>
+    Die erzeugten Datenbankskripte können auch von Hand nachgebessert werden - es kommt vor, dass der generierte Code nicht passt.
+</p>
+
+<p>
+    Für weiterführende Information siehe auch <a target="_blank" href="https://www.entityframeworktutorial.net/efcore/entity-framework-core-migration.aspx">Migration in Entity Framework Core</a>.
+    EF Core kennt 4 Package Manager Befehle für das Arbeiten mit Migrations: add-migration, remove-migration, update-database and script-migration.
+</p>
+
+<p>
+    Details für das Design von DbContext Implementierungen liefert
+    <a target="_blank" href="https://docs.microsoft.com/de-de/ef/core/miscellaneous/cli/dbcontext-creation">Design-time DbContext Creation</a>.
+</p>
 </div>
 </section>
 

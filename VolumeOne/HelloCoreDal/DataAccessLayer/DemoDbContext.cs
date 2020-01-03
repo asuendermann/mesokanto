@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-
-using HelloCoreCommons.Configuration;
-using HelloCoreCommons.DomainModel;
 
 using HelloCoreDal.DomainModel;
 
@@ -48,14 +43,19 @@ namespace HelloCoreDal.DataAccessLayer {
         }
 
         public void SeedDatabase(string masterUserIdentityName) {
-            var master = new MasterAdministrator {
-                UserIdentityName = @"masterUserIdentityName",
-                Name = "Master User",
-                Email = "master@domain.com",
-                Phone = "1234"
-            };
+            if (!MasterAdministrators.Any(a => a.UserIdentityName == masterUserIdentityName)) {
+                var master = new MasterAdministrator {
+                    UserIdentityName = $"{masterUserIdentityName}",
+                    Name = "Master User",
+                    Email = "master@domain.com",
+                    Phone = "1234"
+                };
 
-            Administrators.Add(master);
+                Administrators.Add(master);
+                Log.Information($"Added Master {masterUserIdentityName}");
+            } else {
+                Log.Information($"Master {masterUserIdentityName} already in database.");
+            }
 
             SaveChanges();
         }
