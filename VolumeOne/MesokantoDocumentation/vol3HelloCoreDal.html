@@ -41,10 +41,10 @@
 <h2>Architektur</h2>
 
 <p>
-    Mein Fernzeil ist eine MVC-Anwendung mit Windows-Authtentisierung,
+    Mein Fernziel ist eine MVC-Anwendung mit Windows-Authtentisierung,
     die eine Verwaltungsoberfläche für die in einer MS SqlServer Datenbank abgelegte Projektverwaltung zur Verfügung stellt.
     Technisch würde ich dafür gerne den vollen Architekturstack implementieren.
-    Den Anfang macht hierbei die Datenzugriffsschicht mit dem DomainModel, der eigentlichen Data Access Layer und einem Repository.
+    Den Anfang macht hierbei die Datenzugriffsschicht mit dem DomainModel (DM), der eigentlichen Data Access Layer (DAL) und einem Repository.
 </p>
 
 <p>Das Projekt HelloCoreDal ist eine Consle App und fasst drei Elemente einer gegliederten Architektur zusammen:</p>
@@ -136,22 +136,49 @@
     Die Klassenhierarchie dient dazu, den Type Per Hierarchy (TPH) Ansatz zu demonstrieren.
     Die Klasse <code>Administrator</code> enthält alle benötigten Felder und ist bewusst nicht <code>abstract</code>, weil ich auch die Gesamtsicht auf alle Administrators haben will.
     Dafür muss eine Instanziierung der Basisklasse möglich sein.
-    Die beiden Subklssen steuern keine neuen Properties bei, obwohl das im TPH Ansatz möglich wäre. Mich interessiert hier die Idee, ein Rollenmodell über TPH abzubilden.
+    Die beiden abgeleiteten Klassen steuern keine neuen Properties bei, obwohl das im TPH Ansatz möglich wäre. Mich interessiert hier die Idee, ein Rollenmodell über TPH abzubilden.
+</p>
+
+<p>
+    Um den TPH Ansatz zu erforschen, gibt es den Unit Test <code>HelloCoreTest.DAL.TestDalAdministrators.TestChangeType</code>.
+    Der Test legt einen ProjectAdministrator an.
+    Der neue Eintrag wird aus dem DbSet Administrators ausgelesen und überprüft, ob er die Klasse ProjectAdministrator hat.
+    Dann wird der Discriminator des Eintrags auf "MasterAdministrator" geändert.
+    Der geänderte Eintrag wird erneut ausgelesen und überprüft, ob er als MasterAdministrator ausgelesen wurde.
+    Der Test läuft erfolgreich, d.h. mit der TPH Strategie ist eine Rollenzuweisung und eine spätere Änderung möglich.
 </p>
 
 <h3>DataAnnotations, Attribute und Validierung am Beispiel von E-Mail-Adressen</h3>
 
 <p>
-    Die Klasse <code>Administrator</code> hat ein Feld <code>string Email</code>, das für die Aufnahme einer E-Mail-Adresse vorgesehen ist.
-    Es gibt eine DataAnnotiation <code>System.ComponentModel.DataAnnotations.EmailAddressAttribute</code>,
-    die sich auf den ersten Blick für dieses Feld anbietet in der Annahme, dass diese Annotation eine automatische Validierung des Feldinhaltes nach sich zieht.
-    Dies ist leider nicht der Fall - nur Attribute, die von <code>System.ComponentModel.DataAnnotations.ValidationAttribute</code> abgeleitet sind,
-    werden von der automatischen Validierung erfasst. <code>EmailAddressAttribute</code> ist leider nur eine Implementierung von
-    <code>System.ComponentModel.DataAnnotations.DataTypeAttribute</code> - also ganz nett, aber wirkungslos.
+    Bei der Validierung muss man aufpassen - nur Attribute, die von <code>System.ComponentModel.DataAnnotations.ValidationAttribute</code> abgeleitet sind,
+    werden von der automatischen Validierung erfasst. Also genau aufpassen.
 </p>
 
 <p>
-    Das benötigte ValidationAttribute ist die bewährte selbst geschriebene Klasse <code>HelloCoreCommons.Attributes.EmailAttribute</code>.
+    Die Klasse <code>Administrator</code> hat ein Feld <code>string Email</code>, das für die Aufnahme einer E-Mail-Adresse vorgesehen ist.
+    Es gibt eine DataAnnotiation <code>System.ComponentModel.DataAnnotations.EmailAddressAttribute</code>,
+    die sich auf den ersten Blick für dieses Feld anbietet in der Annahme, dass diese Annotation eine automatische Validierung 
+    des Feldinhaltes auf eine gültige E-Mail-Adresse nach sich zieht.
+    Dies ist leider nicht der Fall - die Implementierung dieses Attributes prüft ledoglich, dass der String das '@' Zeichen enthält, 
+    das nicht an letzter Stelle sthene darf.
+</p>
+
+<p>
+    Für die E-Mail Validierung gibt es zwei Testfälle in der Klasse <code>HelloCoreTest.DAL.TestDalAdministrators</code>.
+    Der Testfall <code>TestProjectAdministratorEmailAdd</code> fügt einen Eintrag mit Email-Adresse hinzu, 
+    der Testfall <code>TestProjectAdministratorEmailUpdate</code> ändert bei einem vorhanden Eintrag das <code>Email</code> Feld.
+    Beide Testfälle laufen so ab, dass verschiedene Werte für das <code>Email</code> Feld ausprobiert werden, 
+    unter anderem auch invalide Werte, bei denen erwartet wird, dass der Validator vor dem Speichern mit <code>SaveChanges</code> 
+    eine <code>ValidationException</code> wirft.
+    Mit dem selbstgeschriebenen <code>EmailAttribute</code> auf dem Feld werden beide Tests bestanden, die Validierung bemerkt alle invaliden Werte.
+    Diese Klasse benutzt einen relativ mächtigen regulären Ausdruck für die Prüfung, so dass sehr viel mehr strukturelle Fehler in E-Mail-Adresen gefunden werden.
+    Ändert man das Attribut auf <code>[EmailAddress]</code>, springt der Validator nicht bei allen invaliden Formaten an. 
+</p>
+
+<p>
+    Das benötigte ValidationAttribute ist die bewährte selbst geschriebene Klasse <code>HelloCoreCommons.Attributes.EmailAttribute</code>, 
+    die sehr viel genauere Prüfungen durchführt.
 </p>
 
 <h2>DataAccessLayer: Anmerkungen zur DbContext Implementierung</h2>

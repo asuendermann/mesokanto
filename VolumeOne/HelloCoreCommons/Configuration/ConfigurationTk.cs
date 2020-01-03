@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using HelloCoreCommons.Serilog;
+
 using Microsoft.Extensions.Configuration;
 
 using Serilog;
@@ -62,7 +64,7 @@ namespace HelloCoreCommons.Configuration {
         /// <param name="key">the key of the parameter value.</param>
         /// <param name="defaultValue">the default value for the property.</param>
         /// <returns>the value from the configuration if present, else the default value if specified, or finally an empty string.</returns>
-        public static string GetValue(this IConfiguration configuration, string section, string key,
+        public static string GetSectionValue(this IConfiguration configuration, string section, string key,
             string defaultValue = null) {
             return configuration?.GetSection(section)[key] ?? defaultValue;
         }
@@ -76,7 +78,7 @@ namespace HelloCoreCommons.Configuration {
         /// <param name="defaultValue">the default value for the property.</param>
         /// <returns>the value from the configuration if present, else the default value if specified, or finally an empty string.</returns>
         public static string GetAppSetting(this IConfiguration configuration, string key, string defaultValue = null) {
-            return configuration?.GetValue(SectionApplicationSettings, key, defaultValue);
+            return configuration?.GetSectionValue(SectionApplicationSettings, key, defaultValue);
         }
 
         public static string InitialAssemblyName {
