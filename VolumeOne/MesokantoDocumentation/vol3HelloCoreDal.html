@@ -362,7 +362,7 @@
     <dt>EntityState.Detached</dt>
     <dd>
         Um ein Objekt aus dem Tracking zu entfernen, setzt man seinen State auf EntityState.Detached:<br/>
-        <code>context.Entry(entity).State = EntityState.Detached;</code>
+        <code>context.Entry(entity).State = EntityState.Detached;</code><br />
         Die Methode <code>BaseDbContext.DetachAllEntities()</code> macht das für alle gerade im Tracking befindlichen Objekte.
     </dd>
     <dt>Query-Operationen immer sauber beenden</dt>
@@ -374,24 +374,32 @@
     </dd>
     <dt>AsNoTracking() verhindert versehentliche Änderungen</dt>
     <dd>
-        Um unerwünschte Änderungen an den Ergebnissen einer Suche zu verhindern, gibt es <code>AsNoTracking()</code>.
-        Die gefundenen Objekte landen nicht im <code>Change Tracking</code> und können gefahrlos weiter verwendet werden.
+        <p>
+            Um unerwünschte Änderungen an den Ergebnissen einer Suche zu verhindern, gibt es <code>AsNoTracking()</code>.
+            Die in einer Suche gefundenen Objekte landen nach dem Aufruf dieser Methode nicht im <code>Change Tracking</code> 
+            und können gefahrlos weiter verwendet werden.
+        </p>
+
+        <p>
+            Im <code>IGenericRepository</code> sind daher <code>Query</code> und <code>Read</code> Methoden vorhanden, 
+            die deutlich verschieden implementiert und zu verwenden sind.
+            <code>Query</code> gibt ein Ergebnis zurück, auf dem im aufrufenden Code Veränderungen ausgeführt und in der Datenbank gespeichert werden können.
+            <code>Read</code> gibt die Ergebnisse <code>AsNoTracking()</code> zurück. Das Ergebnis von <code>Read</code> kann dann zwar auch im aufrufenden Code geändert werden.
+            Die Änderungen werden aber nicht in der Datenbank gespeichert, weil das Tracking ausgeschaltet wurde.
+        </p>
+
     </dd>
     <dt>Der Rückgabewert von <code>DbContext.SaveChanges()</code> ist nur bedingt für die Überprüfung des Erfolges geeignet</dt>
     <dd>
-        <code>DbContext.SaveChanges()</code> gibt die Anzahl der geänderten Objekte zurück - das sind alle im ChangeTracker verfolgten Objekte.
+        <code>DbContext.SaveChanges()</code> gibt die Anzahl der geänderten Objekte zurück - das sind alle im <code>Change Tracking</code> verfolgten geänderten Objekte.
         Das können mehrere Objekte sein, wenn ein einzelnes Objekt zum Beispiel abhängige Objekte implizit mit ändert.
-        Beim Anlegen von strukturierten Objekten werden automatish alle Kind-Elemente auch mit angelegt,
-        was sehr praktisch ist, aber dann zu einem Rückgabewert &gt; 1  führt. 
-        Im <code>GenericRepository</code> prüfen Aktionen auf einzelnen Objekten daher den Status im <code>Change Tracking</code>, um den Erfolg zu prüfen.
+        Beim Anlegen von strukturierten Objekten werden automatisch alle Kind-Elemente auch mit angelegt,
+        was sehr praktisch ist, aber dann zu einem Rückgabewert &gt; 1  führt.
+        Im <code>GenericRepository</code> prüfen Aktionen auf einzelnen Objekten daher nach dem <code>SaveChanges()</code>,
+        ob der Status der im <code>Change Tracking</code> verfolgten Objekte anschließend <code>Unchanged</code> ist, um den Erfolg zu prüfen.
     </dd>
 </dl>
 
-<p>
-    Im <code>IGenericRepository</code> sind daher <code>Query</code> und <code>Read</code> Methoden vorhanden, die deutlich verschieden implementiert und zu verwenden sind.
-    <code>Query</code> gibt ein Ergebnis zurück, auf dem im aufrufenden Code Veränderungen ausgeführt wereden und in der Datenbank gespeichert werden können.
-    Das Ergebnis von <code>Read</code> kann zwar auch im aufrufenden Code geändert werden. Die Änderungen werden aber nicht in der Datenbank gespeichert.
-</p>
 
 
 <h2>Repository</h2>
