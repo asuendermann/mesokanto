@@ -102,7 +102,11 @@
     <dd>
         deklariert den UniqueKey <code>TId Id</code>. Empfohlene Typen für den generischen Typ <code>TId</code> sind:
         <ul>
-            <li><code>int</code>: wird abgebildet auf den Datenbanktyp <code>int</code> und ist der Regelfall</li>
+            <li>
+                <code>int</code>: wird abgebildet auf den Datenbanktyp <code>int</code> und ist der Regelfall.
+                Wenn abzusehen ist, dass es nicht mehr als <code>int.MaxValue=2.147.483.647</code>, also mer als 2 Milliarden, Einträge in einer Tabelle geben wird,
+                ist <code>int</code> als Datentyp völlig ausreichend.
+            </li>
             <li><code>long</code>: wird abgebildet auf den Datenbanktyp <code>bigintint</code> und wird empfohlen, wenn die erwartete Anzahl von Einträgen den Wertebereich von <code>int</code> übersteigt</li>
         </ul>
     </dd>
@@ -133,7 +137,7 @@
     Das DomainModel erhält eine Basisklasse <code>Administrator</code> mit zwei abgeleiteten Klassen <code>ProjectAdministrator</code> und <code>MasterAdministrator</code>.
     Diese Klassen bilden eine Hierarchie von Windows-Benutzern ab, die im Portal unterschiedliche Rollen und Rechte haben werden.
     MasterAdministrator darf alles, ProjektAdministrator wird ein paar Einschränkungen haben.
-    Die Klassenhierarchie dient dazu, den Type Per Hierarchy (TPH) Ansatz zu demonstrieren.
+    Die Klassenhierarchie dient dazu, den Table Per Hierarchy (TPH) Ansatz zu demonstrieren.
     Die Klasse <code>Administrator</code> enthält alle benötigten Felder und ist bewusst nicht <code>abstract</code>, weil ich auch die Gesamtsicht auf alle Administrators haben will.
     Dafür muss eine Instanziierung der Basisklasse möglich sein.
     Die beiden abgeleiteten Klassen steuern keine neuen Properties bei, obwohl das im TPH Ansatz möglich wäre. Mich interessiert hier die Idee, ein Rollenmodell über TPH abzubilden.
@@ -160,8 +164,8 @@
     Es gibt eine DataAnnotiation <code>System.ComponentModel.DataAnnotations.EmailAddressAttribute</code>,
     die sich auf den ersten Blick für dieses Feld anbietet in der Annahme, dass diese Annotation eine automatische Validierung
     des Feldinhaltes auf eine gültige E-Mail-Adresse nach sich zieht.
-    Dies ist leider nicht der Fall - die Implementierung dieses Attributes prüft ledoglich, dass der String das '@' Zeichen enthält,
-    das nicht an letzter Stelle sthene darf.
+    Dies ist leider nicht der Fall - die Implementierung dieses Attributes prüft lediglich, dass der String das '@' Zeichen enthält,
+    das nicht an letzter Stelle stehen darf.
 </p>
 
 <p>
@@ -232,7 +236,7 @@
     Es gibt eine Standardoption <code>-h</code>. Ist diese Option gesetzt, hält das Programm immer im finally Block an.
     Außerdem wird noch vor dem Start geprüft, ob bereits eine Instanz des Programms läuft.
     Das kommt bei langlaufenden Scheduled Tasks zumindest bei mir gelegentlich vor.
-    Der Check verhindert dann, dass mehrere Programminstanzen sich behindern.
+    Der Check verhindert dann, dass mehrere parallel laufende Programminstanzen sich behindern.
 </p>
 
 <p>
@@ -248,7 +252,7 @@
 
 <p>Das Programm löscht - optional - die vorhandene Datenbank, legt sie neu an und fügt einen ersten MasterAdministrator ein.</p>
 
-<p>Die appsettings.json Datei liefert den ConnectionString. Fürs Logging wird Serilog mit Console Sinke verwendet.</p>
+<p>Die appsettings.json Datei liefert den ConnectionString. Fürs Logging wird Serilog mit Console als Ausgabemedium verwendet.</p>
 
 <h2>Arbeiten mit Migrations</h2>
 
@@ -332,17 +336,64 @@
 
 <p>
     Die erzeugten Datenbankskripte können auch von Hand nachgebessert werden - es kommt vor, dass der generierte Code nicht passt.
+    Meistens ist das aber eher ein Hinweis, dass es im Datenbankschema einen Fehler gibt.
 </p>
 
 <p>
     Für weiterführende Information siehe auch <a target="_blank" href="https://www.entityframeworktutorial.net/efcore/entity-framework-core-migration.aspx">Migration in Entity Framework Core</a>.
-    EF Core kennt 4 Package Manager Befehle für das Arbeiten mit Migrations: add-migration, remove-migration, update-database and script-migration.
+    EF Core kommt mit lediglich 4 Package Manager Befehlen für das Arbeiten mit Migrations aus: add-migration, remove-migration, update-database und script-migration.
 </p>
 
 <p>
     Details für das Design von DbContext Implementierungen liefert
     <a target="_blank" href="https://docs.microsoft.com/de-de/ef/core/miscellaneous/cli/dbcontext-creation">Design-time DbContext Creation</a>.
 </p>
+
+<h2>Change Tracking</h2>
+
+<p>
+    <code>Change Tracking</code> ist ein Mechanismus, mit dessen Hilfe die DbContext-Basisklasse alle lesenden und schreibenden Operationen der beobachteten Objekte verfolgt.
+    Der Testfall <code>TestDalAdministrators.TestChangeTracking</code> demonstriert die Arbeit des <code>Change Trackings</code>. Kommentare im Code erklären die einzelnen Schritte.
+</p>
+
+<p>Die wichtigsten Erfahrungen für mich beim Arbeiten mit dem <code>Change Tracking</code> waren folgende:</p>
+
+<dl>
+    <dt>EntityState.Detached</dt>
+    <dd>
+        Um ein Objekt aus dem Tracking zu entfernen, setzt man seinen State auf EntityState.Detached:<br/>
+        <code>context.Entry(entity).State = EntityState.Detached;</code>
+        Die Methode <code>BaseDbContext.DetachAllEntities()</code> macht das für alle gerade im Tracking befindlichen Objekte.
+    </dd>
+    <dt>Query-Operationen immer sauber beenden</dt>
+    <dd>
+        Eine Datenbanksuche, die ein <code>IQueryable</code> zurückgibt, hält im Hintergrund einen DataReader solange offen,
+        bis ein Cast des Ergebnisses auf ein <code>IEnumerable</code> signalisiert: Die Suche ist abgeschlossen.
+        Danach landen die gefundenen Ergebnisse allesamt im Tracking mit einem Status <code>Unchanged</code>
+        und können - absichtlich oder unabsichtlich - in der Datenbank verändert werden.<br/>
+    </dd>
+    <dt>AsNoTracking() verhindert versehentliche Änderungen</dt>
+    <dd>
+        Um unerwünschte Änderungen an den Ergebnissen einer Suche zu verhindern, gibt es <code>AsNoTracking()</code>.
+        Die gefundenen Objekte landen nicht im <code>Change Tracking</code> und können gefahrlos weiter verwendet werden.
+    </dd>
+    <dt>Der Rückgabewert von <code>DbContext.SaveChanges()</code> ist nur bedingt für die Überprüfung des Erfolges geeignet</dt>
+    <dd>
+        <code>DbContext.SaveChanges()</code> gibt die Anzahl der geänderten Objekte zurück - das sind alle im ChangeTracker verfolgten Objekte.
+        Das können mehrere Objekte sein, wenn ein einzelnes Objekt zum Beispiel abhängige Objekte implizit mit ändert.
+        Beim Anlegen von strukturierten Objekten werden automatish alle Kind-Elemente auch mit angelegt,
+        was sehr praktisch ist, aber dann zu einem Rückgabewert &gt; 1  führt. 
+        Im <code>GenericRepository</code> prüfen Aktionen auf einzelnen Objekten daher den Status im <code>Change Tracking</code>, um den Erfolg zu prüfen.
+    </dd>
+</dl>
+
+<p>
+    Im <code>IGenericRepository</code> sind daher <code>Query</code> und <code>Read</code> Methoden vorhanden, die deutlich verschieden implementiert und zu verwenden sind.
+    <code>Query</code> gibt ein Ergebnis zurück, auf dem im aufrufenden Code Veränderungen ausgeführt wereden und in der Datenbank gespeichert werden können.
+    Das Ergebnis von <code>Read</code> kann zwar auch im aufrufenden Code geändert werden. Die Änderungen werden aber nicht in der Datenbank gespeichert.
+</p>
+
+
 <h2>Repository</h2>
 
 <p>
@@ -352,8 +403,9 @@
 </p>
 
 <p>
-    Zu beachten ist, dass die Klasse generisch für alle <code>IEntityBase</code> Implementierungen ist. 
-    D.h. mit einer generischen Klasse können für alle Datenbankobjekte gleichartige Repository Objekte erzeugt werden.
+    Zu beachten ist, dass die Klasse generisch für alle <code>IEntityBase</code> Implementierungen ist.
+    D.h. mit einer generischen Klasse können für alle Datenbankobjekte gleichartige Repository Objekte erzeugt werden,
+    die die implementierten Aktionen stets auf die gleiche Art erledigen.
 </p>
 
 </div>

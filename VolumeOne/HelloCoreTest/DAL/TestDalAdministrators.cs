@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 
+using HelloCoreDal.DataAccessLayer;
 using HelloCoreDal.DomainModel;
 
 using Microsoft.EntityFrameworkCore;
@@ -270,6 +271,77 @@ namespace HelloCoreTest.DAL {
 
             var invokeException = new Func<ProjectAdministrator, bool>(TryUpdateEntity<ProjectAdministrator, int>);
             ValidateRequiredStringTests<ProjectAdministrator, int>(projectAdmin, "Phone", 32, invokeException);
+        }
+
+
+        /// <summary>
+        /// Diese Testfall ist bewusst static um keine Seiteneffekte aus anderen Tests zu haben - sozusage ein Test in Quarantäne.
+        /// </summary>
+        [Test]
+        public static void TestChangeTracking() {
+            // create a new DbContext
+            using var context = DependencyInjector.GetServiceProvider().GetService(typeof(DemoDbContext)) as DemoDbContext;
+            if (null == context) {
+                throw new ArgumentNullException(typeof(DemoDbContext).Name);
+            }
+            context.Database.EnsureCreated();
+
+            // Change Tracker in a new created DbContext is empty
+            Assert.AreEqual(0, context.ChangeTracker.Entries().Count());
+
+            // Add a single entity by setting its state to Added should add it to Tracking 
+            var administrator = CreateAdministrator<Administrator,int>();
+            context.Entry(administrator).State = EntityState.Added;
+            Assert.AreEqual(1, context.ChangeTracker.Entries().Count());
+
+            // Saving the changes keeps entry tracked but sets its state to Unchanged
+            Assert.AreEqual(1, context.SaveChanges());
+            Assert.AreEqual(1, context.ChangeTracker.Entries().Count());
+            Assert.AreEqual(EntityState.Unchanged, context.Entry(administrator).State);
+
+            // a change to the tracked entry will be automatically detected
+            administrator.Phone = "0000";
+            Assert.AreEqual(EntityState.Modified, context.Entry(administrator).State);
+
+            // Saving the changes keeps entry tracked but sets its state to Unchanged
+            Assert.AreEqual(1, context.SaveChanges());
+            Assert.AreEqual(1, context.ChangeTracker.Entries().Count());
+            Assert.AreEqual(EntityState.Unchanged, context.Entry(administrator).State);
+
+            // Remove entry from change tracking is achieved by setting its state to detached
+            context.Entry(administrator).State = EntityState.Detached;
+            Assert.AreEqual(0, context.ChangeTracker.Entries().Count());
+
+            // then, changes in the entry will not be detected - entry is still no longer in tracking
+            administrator.Phone = "0001";
+            Assert.AreEqual(0, context.ChangeTracker.Entries().Count());
+
+            // The result of a query is always tracked after closing the query by casting the result to IEnumerable.
+            // After requesting an IQueryable, the database command backing the query remains open!
+            // Only a call that maps the result to an IEnumerable will close the command and put the resulting entries into tracking!
+            var query1 = context.Administrators.Where(a => a.UserIdentityName != null);
+            Assert.AreEqual(0, context.ChangeTracker.Entries().Count());
+            var entities1 = query1.ToList();
+            Assert.AreEqual(1, context.ChangeTracker.Entries().Count());
+
+            // Tracked results are in state Unchanged ...
+            var entity1 = entities1.First();
+            Assert.AreEqual(EntityState.Unchanged, context.Entry(entity1).State);
+
+            // ... and modifications get detected
+            entity1.Phone = "0002";
+            Assert.AreEqual(EntityState.Modified, context.Entry(entity1).State);
+            Assert.AreEqual(1, context.SaveChanges());
+            Assert.AreEqual(EntityState.Unchanged, context.Entry(entity1).State);
+
+            // Detach all entities
+            context.DetachAllEntities();
+            Assert.AreEqual(0, context.ChangeTracker.Entries().Count());
+
+            // AsNoTracking()prevents tracking of the result of a query
+            var entities2 = context.Administrators.Where(a => a.UserIdentityName != null).AsNoTracking().ToList();
+            Assert.AreEqual(1, entities2.Count);
+            Assert.AreEqual(0, context.ChangeTracker.Entries().Count());
         }
     }
 }

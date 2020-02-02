@@ -1,28 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 
 using HelloCoreCommons.DomainModel;
 using HelloCoreCommons.Paging;
 
+using HelloCoreDal.DataAccessLayer;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace HelloCoreDal.Repository {
     public class GenericDbRepository<T, TId> : IGenericRepository<T, TId> where T : class, IEntityBase<TId> {
-        public GenericDbRepository(DbContext context) {
+        public GenericDbRepository(DemoDbContext context) {
             Context = context;
         }
 
-        protected DbContext Context { get; }
+        protected DemoDbContext Context { get; }
 
         public bool Create(T model) {
-            if (null == model) {
+            if (null == model || !EqualityComparer<TId>.Default.Equals(model.Id, default) || !IsValid(model)) {
                 return false;
             }
 
             Context.Entry(model).State = EntityState.Added;
-            return 1 == Context.SaveChanges();
+            Context.SaveChanges();
+            var success = Context.Entry(model).State == EntityState.Unchanged;
+            return success;
         }
 
         public bool Create(IEnumerable<T> models) {
@@ -51,8 +56,8 @@ namespace HelloCoreDal.Repository {
             return success;
         }
 
-        public bool CreateWithContraint(Expression<Func<T, bool>> predicate, T model) {
-            if (null == model) {
+        public bool Create(Expression<Func<T, bool>> predicate, T model) {
+            if (null == model || !EqualityComparer<TId>.Default.Equals(model.Id, default) || !IsValid(model)) {
                 return false;
             }
 
@@ -61,20 +66,35 @@ namespace HelloCoreDal.Repository {
             }
 
             Context.Entry(model).State = EntityState.Added;
-            return 1 == Context.SaveChanges();
+            Context.SaveChanges();
+            var success = Context.Entry(model).State == EntityState.Unchanged;
+            return success;
         }
 
         public bool Update(T model) {
-            if (null == model || EqualityComparer<TId>.Default.Equals(model.Id, default)) {
+            if (null == model || EqualityComparer<TId>.Default.Equals(model.Id, default) || !IsValid(model)) {
                 return false;
             }
 
             Context.Entry(model).State = EntityState.Modified;
-            return 1 == Context.SaveChanges();
+            Context.SaveChanges();
+            var success = Context.Entry(model).State == EntityState.Unchanged;
+            return success;
         }
 
         public bool UpdateWithContraint(Expression<Func<T, bool>> predicate, T model) {
-            throw new NotImplementedException();
+            if (null == model || EqualityComparer<TId>.Default.Equals(model.Id, default) || !IsValid(model)) {
+                return false;
+            }
+
+            if (Context.Set<T>().Any(predicate)) {
+                return false;
+            }
+
+            Context.Entry(model).State = EntityState.Modified;
+            Context.SaveChanges();
+            var success = Context.Entry(model).State == EntityState.Unchanged;
+            return success;
         }
 
         public bool Update(IEnumerable<T> models) {
@@ -112,7 +132,9 @@ namespace HelloCoreDal.Repository {
                 EntityState.Added :
                 EntityState.Modified;
 
-            return 1 == Context.SaveChanges();
+            Context.SaveChanges();
+            var success = Context.Entry(model).State == EntityState.Unchanged;
+            return success;
         }
 
         public bool CreateOrUpdate(IEnumerable<T> models) {
@@ -213,7 +235,9 @@ namespace HelloCoreDal.Repository {
             }
 
             Context.Entry(model).State = EntityState.Deleted;
-            return 1 == Context.SaveChanges();
+            Context.SaveChanges();
+            var success = Context.Entry(model).State == EntityState.Unchanged;
+            return success;
         }
 
         public bool Delete(T[] models) {
@@ -240,6 +264,18 @@ namespace HelloCoreDal.Repository {
             }
 
             return success;
+        }
+
+        public bool IsValid(T entity) {
+            if (typeof(IAuditableBase<TId>).IsAssignableFrom(typeof(T))) {
+                var auditable = (IAuditableBase<TId>) entity;
+                auditable.CreatedAt = DateTime.UtcNow;
+                auditable.CreatedBy = Context.Requestor;
+            }
+
+            var context = new ValidationContext(entity);
+            var results = new List<ValidationResult>();
+            return Validator.TryValidateObject(entity, context, results, true);
         }
     }
 }

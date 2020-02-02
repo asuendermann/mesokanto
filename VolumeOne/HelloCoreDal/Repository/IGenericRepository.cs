@@ -38,7 +38,7 @@ namespace HelloCoreDal.Repository {
         /// <param name="predicate">the expression that checks the constraint. if constraint is true, do not create the entry.</param>
         /// <param name="model">the domain object to be created.</param>
         /// <returns>true if the object has been stored in the database, false otherwise.</returns>
-        bool CreateWithContraint(Expression<Func<T, bool>> predicate, T model);
+        bool Create(Expression<Func<T, bool>> predicate, T model);
 
         /// <summary>
         ///     update a single domain object in the database.

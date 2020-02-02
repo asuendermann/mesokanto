@@ -12,12 +12,14 @@ using Serilog;
 
 namespace HelloCoreDal.DataAccessLayer {
     public class BaseDbContext : DbContext {
+        public string Requestor { get; set; }
+
         public BaseDbContext(DbContextOptions<DemoDbContext> options) : base(options) {
         }
 
         public override int SaveChanges() {
             var now = DateTime.UtcNow;
-            var requestor = ConfigurationTk.InitialAssemblyName;
+            var requestor = Requestor ?? ConfigurationTk.InitialAssemblyName;
             MarkEntries<int>(now, requestor);
 
             ValidateChanges();
