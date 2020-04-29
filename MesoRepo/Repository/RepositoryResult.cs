@@ -3,18 +3,17 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Repository {
     public class RepositoryResult<T> {
+        public bool Success => RepositoryResultCode.Success == ResultCode;
 
+        public int ResultCode { get; set; }
 
-        public bool Success => !Impractical && !Duplicate && !Invalid && !SaveFailed;
+        public bool Impractical => RepositoryResultCode.Impractical == (ResultCode & RepositoryResultCode.Impractical);
 
-        public bool Impractical { get; set; }
+        public bool Duplicate => RepositoryResultCode.Duplicate == (ResultCode & RepositoryResultCode.Duplicate);
 
-        public bool Duplicate { get; set; }
+        public bool Invalid => RepositoryResultCode.Invalid == (ResultCode & RepositoryResultCode.Invalid);
 
-        public bool Invalid { get; set; }
-
-        public bool SaveFailed { get; set; }
-
+        public bool SaveFailed => RepositoryResultCode.SaveFailed == (ResultCode & RepositoryResultCode.SaveFailed);
 
         public ICollection<ValidationResult> ValidationResult { get; set; }
 
