@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Linq;
-
-namespace Commons.DomainModel {
+﻿namespace Commons.DomainModel {
     public static class DmConstants {
         // Length Limit Constants (Power of 2)
         public const int MaxLength_32 = 32;

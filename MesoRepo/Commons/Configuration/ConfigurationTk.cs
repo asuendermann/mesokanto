@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+
+using Serilog;
+
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-
-using Microsoft.Extensions.Configuration;
-
-using Serilog;
 
 namespace Commons.Configuration {
     public static class ConfigurationTk {
@@ -33,7 +33,7 @@ namespace Commons.Configuration {
             get {
                 var frames = new StackTrace().GetFrames();
                 var initialAssembly = (from f in frames
-                        select f.GetMethod()?.ReflectedType?.Assembly.GetName().Name
+                                       select f.GetMethod()?.ReflectedType?.Assembly.GetName().Name
                     ).Last();
                 return initialAssembly;
             }

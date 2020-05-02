@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Commons.DomainModel;
+using System.ComponentModel.DataAnnotations;
 
-namespace Commons.DomainModel.Base {
+namespace DomainModel.Base {
     public class BaseTablePerHierarchy<TId> : BaseAuditable<TId> {
         [Required]
         [MaxLength(DmConstants.MaxLength_256)]

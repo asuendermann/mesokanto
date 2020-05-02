@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Commons.DomainModel;
+using Commons.DomainModel.Base;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Commons.DomainModel.Base {
+namespace DomainModel.Base {
     public class BaseAuditable<TId> : IAuditable<TId> {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

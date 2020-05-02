@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Repository.SortFilters;
+
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-
-using Repository.SortFilters;
 
 namespace Repository {
     public class PagedResult<T>
@@ -16,7 +16,7 @@ namespace Repository {
         }
 
         public Expression<Func<T, bool>> Filter { get; set; }
-        
+
         public ICollection<SortFilter<T>> SortFilters { get; set; }
 
         public IEnumerable<T> Results { get; set; }
