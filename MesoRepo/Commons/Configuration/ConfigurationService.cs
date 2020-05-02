@@ -1,13 +1,15 @@
 ﻿using System;
 using System.IO;
-
 using Microsoft.Extensions.Configuration;
 
-namespace HelloCoreCommons.Configuration {
+using static Commons.Configuration.ConfigurationExtensions;
+
+namespace Commons.Configuration {
     public class ConfigurationService : IConfigurationService {
-        public ConfigurationService(string appSettings = ConfigurationTk.AppSettings) {
+
+        public ConfigurationService(string appSettings = AppSettings) {
             var currentDirectory = Directory.GetCurrentDirectory();
-            var environment = Environment.GetEnvironmentVariable(ConfigurationTk.AspnetcoreEnvironment) ?? "Development";
+            var environment = Environment.GetEnvironmentVariable(AspnetcoreEnvironment) ?? "Development";
             Configuration = new ConfigurationBuilder()
                 .SetBasePath(currentDirectory)
                 .AddJsonFile($"{appSettings}.json", false, true)
@@ -28,7 +30,7 @@ namespace HelloCoreCommons.Configuration {
 
         public string ProjectConnectionString {
             get {
-                var connectionStringName = Configuration.GetAppSetting(ConfigurationTk.ProjectConnectionString);
+                var connectionStringName = Configuration.GetAppSetting(KeyProjectConnectionString);
                 var connectionString = Configuration.GetConnectionString(connectionStringName);
                 return connectionString;
             }

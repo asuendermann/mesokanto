@@ -20,5 +20,6 @@ namespace DomainModel.Base {
 
         [MaxLength(DmConstants.MaxLength_256)]
         public string ModifiedBy { get; set; }
+
     }
 }

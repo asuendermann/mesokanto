@@ -17,9 +17,6 @@ namespace DatabaseAccess {
 
         private static string requestor;
 
-        public static Dictionary<Type, MethodInfo> CreateComparers = BaseDbContext.CreateComparers;
-        public static Dictionary<Type, MethodInfo> UpdateComparers = BaseDbContext.UpdateComparers;
-
         static DbContextExtensions() {
             requestor = typeof(DbContext).Name;
         }
@@ -172,10 +169,10 @@ namespace DatabaseAccess {
             ValidateEntity<T, TId>(model, result);
 
             // Check 3: model violates UK constraint - skip
-            var methodInfo = CreateComparers[typeof(T)];
-            if ( null != methodInfo ) {
+            if (model is IUniqueAuditable ) {
                 var baseAuditables = dbContext.Set<T>().AsEnumerable() ?? new List<T>();
-                if (baseAuditables.Any(q => (bool) methodInfo.Invoke(null, new object[] { q, model }))) {
+                var uniqueModel = (IUniqueAuditable)model;
+                if (baseAuditables.Any(q => uniqueModel.HasSameUniqueKey(q) ) ) {
                     result.ResultCode |= RepositoryResultCode.Duplicate;
                 }
             }

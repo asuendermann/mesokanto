@@ -8,7 +8,7 @@ using System.IO;
 using System.Linq;
 
 namespace Commons.Configuration {
-    public static class ConfigurationTk {
+    public static class ConfigurationExtensions {
         public const string AspnetcoreEnvironment = "ASPNETCORE_ENVIRONMENT";
 
         public const string AppSettings = "appsettings";
@@ -19,11 +19,11 @@ namespace Commons.Configuration {
 
         public static readonly string SectionApplicationSettings = "ApplicationSettings";
 
-        public static readonly string ProjectConnectionString = "ProjectConnectionString";
+        public static readonly string KeyProjectConnectionString = "ProjectConnectionString";
 
         public static readonly string ProjectName = "ProjectName";
 
-        static ConfigurationTk() {
+        static ConfigurationExtensions() {
             InitialAssemblyName = FindInitialAssemblyName;
         }
 
