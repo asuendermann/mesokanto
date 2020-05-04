@@ -1,5 +1,5 @@
-﻿namespace DatabaseAccess.Repository {
-    public static class RepositoryResultCode {
+﻿namespace DatabaseAccess {
+    public static class DbResultCode {
         public const int Success = 0;
 
         public const int Impractical = 1;

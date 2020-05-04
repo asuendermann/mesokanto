@@ -1,10 +1,10 @@
-﻿using DatabaseAccess.Repository.SortFilters;
+﻿using DatabaseAccess.SortFilters;
 
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace DatabaseAccess.Repository {
+namespace DatabaseAccess {
     public class PagedResult<T>
         where T : class {
         public const int PageSize_10 = 10;

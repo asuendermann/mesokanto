@@ -1,24 +1,26 @@
 ﻿using Commons.DomainModel.Base;
-using DatabaseAccess.Repository;
-using DatabaseAccess.Repository.SortFilters;
-using DomainModel.Administration;
+
+using DatabaseAccess.SortFilters;
+
 using DomainModel.Base;
+
 using Microsoft.EntityFrameworkCore;
+
 using Serilog;
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 
 namespace DatabaseAccess {
     public static class DbContextExtensions {
 
-        private static string requestor;
+        public static string Requestor;
 
         static DbContextExtensions() {
-            requestor = typeof(DbContext).Name;
+            Requestor = typeof(DbContext).Name;
         }
 
         /// <summary>
@@ -49,14 +51,14 @@ namespace DatabaseAccess {
             }
         }
 
-        public static void ValidateEntity<T, TId>( T entity, RepositoryResult<T> result)
+        public static void ValidateEntity<T, TId>( T entity, DbResult<T> result)
             where T : IAuditable<TId> {
             entity.CreatedAt = DateTime.UtcNow;
-            entity.CreatedBy = requestor;
+            entity.CreatedBy = Requestor;
 
             var validationContext = new ValidationContext(entity);
-            if (!Validator.TryValidateObject(entity, validationContext, result.ValidationResult, true)) {
-                result.ResultCode |= RepositoryResultCode.ValidationFailed;
+            if (!Validator.TryValidateObject(entity, validationContext, result.ValidationResults, true)) {
+                result.ResultCode |= DbResultCode.ValidationFailed;
             }
         }
 
@@ -66,12 +68,12 @@ namespace DatabaseAccess {
                 switch (entity.State) {
                     case EntityState.Modified:
                         entity.Entity.ModifiedAt = timeStamp;
-                        entity.Entity.ModifiedBy = requestor;
+                        entity.Entity.ModifiedBy = Requestor;
 
                         break;
                     case EntityState.Added:
                         entity.Entity.CreatedAt = timeStamp;
-                        entity.Entity.CreatedBy = requestor;
+                        entity.Entity.CreatedBy = Requestor;
                         break;
                 }
             }
@@ -98,7 +100,7 @@ namespace DatabaseAccess {
         ///     Child entities are not checked.
         /// </param>
         /// <returns>a result object indicating the outcome of the operation</returns>
-        public static RepositoryResult<T> CreateWithChildren<T, TId>(this DbContext dbContext, T model)
+        public static DbResult<T> CreateWithChildren<T, TId>(this DbContext dbContext, T model)
             where T : BaseAuditable<TId> {
             var result = dbContext.CheckCreateEntity<T, TId>(model);
 
@@ -109,7 +111,7 @@ namespace DatabaseAccess {
                 var changed = dbContext.SaveChanges();
                 var entityAdded = dbContext.Entry(model).State == EntityState.Unchanged;
                 if (0 == changed || !entityAdded) {
-                    result.ResultCode |= RepositoryResultCode.SaveFailed;
+                    result.ResultCode |= DbResultCode.SaveFailed;
                 }
             }
 
@@ -133,7 +135,7 @@ namespace DatabaseAccess {
         ///     Child entities are not checked.
         /// </param>
         /// <returns>a result object indicating the outcome of the operation</returns>
-        public static RepositoryResult<T> Create<T, TId>(this BaseDbContext dbContext, T model)
+        public static DbResult<T> Create<T, TId>(this DbContext dbContext, T model)
             where T : BaseAuditable<TId> {
             var result = dbContext.CheckCreateEntity<T, TId>(model);
 
@@ -143,7 +145,7 @@ namespace DatabaseAccess {
                 var changed = dbContext.SaveChanges();
                 var entityAdded = dbContext.Entry(model).State == EntityState.Unchanged;
                 if (0 == changed || !entityAdded) {
-                    result.ResultCode |= RepositoryResultCode.SaveFailed;
+                    result.ResultCode |= DbResultCode.SaveFailed;
                 }
             }
 
@@ -154,15 +156,15 @@ namespace DatabaseAccess {
             return result;
         }
 
-        public static RepositoryResult<T> CheckCreateEntity<T, TId>(this DbContext dbContext,T model)
+        public static DbResult<T> CheckCreateEntity<T, TId>(this DbContext dbContext,T model)
             where T : BaseAuditable<TId> {
-            var result = new RepositoryResult<T> {
+            var result = new DbResult<T> {
                 Entity = model
             };
 
             // Check 1: model already has unique key - skip 
             if (!EqualityComparer<TId>.Default.Equals(model.Id, default)) {
-                result.ResultCode |= RepositoryResultCode.Impractical;
+                result.ResultCode |= DbResultCode.Impractical;
             }
 
             // Check 2: model does not pass validation - skip
@@ -173,15 +175,29 @@ namespace DatabaseAccess {
                 var baseAuditables = dbContext.Set<T>().AsEnumerable() ?? new List<T>();
                 var uniqueModel = (IUniqueAuditable)model;
                 if (baseAuditables.Any(q => uniqueModel.HasSameUniqueKey(q) ) ) {
-                    result.ResultCode |= RepositoryResultCode.Duplicate;
+                    result.ResultCode |= DbResultCode.Duplicate;
                 }
             }
 
             return result;
         }
 
+        public static T ReadSingle<T, TId> (
+            this DbContext dbAccess,
+            Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] paths)
+                        where T : BaseAuditable<TId> {
+            var model = dbAccess.Set<T>().Where(predicate).AsQueryable();
+            if (null != paths) {
+                foreach (var path in paths) {
+                    model = model.Include(path);
+                }
+            }
+
+            return model.AsNoTracking().FirstOrDefault();
+        }
+
         public static void ReadPage<T, TId>(
-            this BaseDbContext dbAccess,
+            this DbContext dbAccess,
             PagedResult<T> result,
             params Expression<Func<T, object>>[] paths)
             where T : BaseAuditable<TId> {
@@ -204,7 +220,7 @@ namespace DatabaseAccess {
         }
 
         public static IQueryable<T> Query<T, TId>(
-            this BaseDbContext dbAccess,
+            this DbContext dbAccess,
             Expression<Func<T, bool>> predicate,
             params Expression<Func<T, object>>[] paths)
             where T : BaseAuditable<TId> {
@@ -224,7 +240,7 @@ namespace DatabaseAccess {
         }
 
         public static IOrderedQueryable<T> SortQuery<T, TId>(
-            this BaseDbContext dbAccess,
+            this DbContext dbAccess,
             IQueryable<T> query,
             ICollection<SortFilter<T>> sortFilters)
             where T : BaseAuditable<TId> {

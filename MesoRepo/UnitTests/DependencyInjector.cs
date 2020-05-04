@@ -11,7 +11,6 @@ namespace UnitTests {
 
             services.AddScoped<IConfigurationService, ConfigurationService>();
 
-            // Tell Services how to make a DbContext
             services.AddScoped(provider => {
                 var configurationService = provider.GetService<IConfigurationService>();
                 var optionsBuilder =
