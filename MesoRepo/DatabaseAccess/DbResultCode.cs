@@ -8,6 +8,8 @@
 
         public const int Duplicate = 4;
 
-        public const int SaveFailed = 8;
+        public const int EntityIsNull = 8;
+
+        public const int SaveFailed = 16;
     }
 }

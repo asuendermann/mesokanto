@@ -26,7 +26,7 @@ namespace Commons.DomainModel.Base {
         /// <summary>
         ///     allow tracking of the database entry lifecycle:
         ///     Mark the source/origin of the object.
-        ///     Must not hold a reference to an identifyable person due to privacy constraints.
+        ///     Must not hold a reference to an identifiable person due to privacy constraints.
         /// </summary>
         string CreatedBy { get; set; }
 
@@ -39,7 +39,7 @@ namespace Commons.DomainModel.Base {
         /// <summary>
         ///     allow tracking of the database entry lifecycle:
         ///     Mark the source/origin of the last modification of the object.
-        ///     Must not hold a reference to an identifyable person due to privacy constraints.
+        ///     Must not hold a reference to an identifiable person due to privacy constraints.
         /// </summary>
         string ModifiedBy { get; set; }
     }

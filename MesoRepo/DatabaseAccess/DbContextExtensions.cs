@@ -1,22 +1,16 @@
-﻿using Commons.DomainModel.Base;
-
-using DatabaseAccess.SortFilters;
-
-using DomainModel.Base;
-
-using Microsoft.EntityFrameworkCore;
-
-using Serilog;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
+using Commons.DomainModel.Base;
+using DatabaseAccess.SortFilters;
+using DomainModel.Base;
+using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace DatabaseAccess {
     public static class DbContextExtensions {
-
         public static string Requestor;
 
         static DbContextExtensions() {
@@ -51,10 +45,12 @@ namespace DatabaseAccess {
             }
         }
 
-        public static void ValidateEntity<T, TId>( T entity, DbResult<T> result)
+        public static void ValidateEntity<T, TId>(T entity, DbResult<T> result)
             where T : IAuditable<TId> {
-            entity.CreatedAt = DateTime.UtcNow;
-            entity.CreatedBy = Requestor;
+            entity.CreatedAt = EqualityComparer<DateTime>.Default.Equals(entity.CreatedAt, default)
+                ? DateTime.UtcNow
+                : entity.CreatedAt;
+            entity.CreatedBy ??= Requestor;
 
             var validationContext = new ValidationContext(entity);
             if (!Validator.TryValidateObject(entity, validationContext, result.ValidationResults, true)) {
@@ -95,10 +91,6 @@ namespace DatabaseAccess {
         /// <typeparam name="TId">the type of the identity key</typeparam>
         /// <param name="dbContext">the database context implementation to be extended.</param>
         /// <param name="model">the entity to be created.</param>
-        /// <param name="isDuplicate">
-        ///     (optional) function to determine if adding the entity would violate the UK constraints.
-        ///     Child entities are not checked.
-        /// </param>
         /// <returns>a result object indicating the outcome of the operation</returns>
         public static DbResult<T> CreateWithChildren<T, TId>(this DbContext dbContext, T model)
             where T : BaseAuditable<TId> {
@@ -129,52 +121,53 @@ namespace DatabaseAccess {
         /// <typeparam name="T">the type of the entity to be created</typeparam>
         /// <typeparam name="TId">the type of the identity key</typeparam>
         /// <param name="dbContext">the database context implementation to be extended.</param>
-        /// <param name="model">the entity to be created.</param>
-        /// <param name="isDuplicate">
-        ///     (optional) function to determine if adding the entity would violate the UK constraints.
-        ///     Child entities are not checked.
-        /// </param>
+        /// <param name="entity">the entity to be created.</param>
         /// <returns>a result object indicating the outcome of the operation</returns>
-        public static DbResult<T> Create<T, TId>(this DbContext dbContext, T model)
+        public static DbResult<T> Create<T, TId>(this DbContext dbContext, T entity)
             where T : BaseAuditable<TId> {
-            var result = dbContext.CheckCreateEntity<T, TId>(model);
+            var result = dbContext.CheckCreateEntity<T, TId>(entity);
 
             if (result.Success) {
-                dbContext.Entry(model).State = EntityState.Added;
+                dbContext.Entry(entity).State = EntityState.Added;
 
                 var changed = dbContext.SaveChanges();
-                var entityAdded = dbContext.Entry(model).State == EntityState.Unchanged;
+                var entityAdded = dbContext.Entry(entity).State == EntityState.Unchanged;
                 if (0 == changed || !entityAdded) {
                     result.ResultCode |= DbResultCode.SaveFailed;
                 }
             }
 
             if (!result.Success) {
-                dbContext.Entry(model).State = EntityState.Detached;
+                dbContext.Entry(entity).State = EntityState.Detached;
             }
 
             return result;
         }
 
-        public static DbResult<T> CheckCreateEntity<T, TId>(this DbContext dbContext,T model)
+
+        public static DbResult<T> CheckCreateEntity<T, TId>(this DbContext dbContext, T entity)
             where T : BaseAuditable<TId> {
             var result = new DbResult<T> {
-                Entity = model
+                Entity = entity
             };
 
-            // Check 1: model already has unique key - skip 
-            if (!EqualityComparer<TId>.Default.Equals(model.Id, default)) {
+            if (null == entity) {
+                result.ResultCode = DbResultCode.EntityIsNull;
+                return result;
+            }
+
+            // Check 1: entity already has unique key - skip 
+            if (!EqualityComparer<TId>.Default.Equals(entity.Id, default)) {
                 result.ResultCode |= DbResultCode.Impractical;
             }
 
-            // Check 2: model does not pass validation - skip
-            ValidateEntity<T, TId>(model, result);
+            // Check 2: entity does not pass validation - skip
+            ValidateEntity<T, TId>(entity, result);
 
-            // Check 3: model violates UK constraint - skip
-            if (model is IUniqueAuditable ) {
+            // Check 3: entity violates UK constraint - skip
+            if (entity is IUniqueAuditable uniqueEntity) {
                 var baseAuditables = dbContext.Set<T>().AsEnumerable() ?? new List<T>();
-                var uniqueModel = (IUniqueAuditable)model;
-                if (baseAuditables.Any(q => uniqueModel.HasSameUniqueKey(q) ) ) {
+                if (baseAuditables.Any(q => uniqueEntity.HasSameUniqueKey(q))) {
                     result.ResultCode |= DbResultCode.Duplicate;
                 }
             }
@@ -182,10 +175,59 @@ namespace DatabaseAccess {
             return result;
         }
 
-        public static T ReadSingle<T, TId> (
+        public static DbResult<T> Update<T, TId>(
+            this DbContext dbContext,
+            T entity)
+            where T : BaseAuditable<TId> {
+            var result = dbContext.CheckUpdateEntity<T, TId>(entity);
+            if (result.Success) {
+                dbContext.Entry(entity).State = EntityState.Modified;
+                var changed = dbContext.SaveChanges();
+                var entityUpdated = dbContext.Entry(entity).State == EntityState.Unchanged;
+                if (0 == changed || !entityUpdated) {
+                    result.ResultCode |= DbResultCode.SaveFailed;
+                }
+            }
+
+            return result;
+        }
+
+        public static DbResult<T> CheckUpdateEntity<T, TId>(this DbContext dbContext, T entity)
+            where T : BaseAuditable<TId> {
+            var result = new DbResult<T> {
+                Entity = entity
+            };
+
+            // Check 0: entity is NULL
+            if (null == entity) {
+                result.ResultCode = DbResultCode.EntityIsNull;
+                return result;
+            }
+
+            // Check 1: entity has no unique key - skip 
+            if (EqualityComparer<TId>.Default.Equals(entity.Id, default)) {
+                result.ResultCode |= DbResultCode.Impractical;
+            }
+
+            // Check 2: entity does not pass validation - skip
+            ValidateEntity<T, TId>(entity, result);
+
+            // Check 3: entity violates UK constraint - skip
+            if (entity is IUniqueAuditable uniqueEntity) {
+                var baseAuditables = dbContext.Set<T>().AsEnumerable() ?? new List<T>();
+                if (baseAuditables.Any(q => uniqueEntity.HasSameUniqueKey(q) &&
+                                            !EqualityComparer<TId>.Default.Equals(entity.Id, q.Id))) {
+                    result.ResultCode |= DbResultCode.Duplicate;
+                }
+            }
+
+            return result;
+        }
+
+        public static T ReadSingle<T, TId>(
             this DbContext dbAccess,
             Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] paths)
-                        where T : BaseAuditable<TId> {
+            where T : BaseAuditable<TId> {
             var model = dbAccess.Set<T>().Where(predicate).AsQueryable();
             if (null != paths) {
                 foreach (var path in paths) {
@@ -206,7 +248,7 @@ namespace DatabaseAccess {
 
             result.RowCount = sortedQuery.Count();
 
-            result.PageCount = (int)Math.Ceiling((double)result.RowCount / result.PageSize);
+            result.PageCount = (int) Math.Ceiling((double) result.RowCount / result.PageSize);
 
             var skip = (result.PageNumber - 1) * result.PageSize;
             var results = sortedQuery.Skip(skip).Take(result.PageSize);
@@ -251,18 +293,18 @@ namespace DatabaseAccess {
 
             foreach (var sortFilter in sortFilters) {
                 if (sortFilter is SortFilterString<T>) {
-                    var expression = ((SortFilterString<T>)sortFilter).Expression;
-                    sortedQuery = sortFilter.Descending ?
-                        sortedQuery.OrderByDescending(expression) :
-                        sortedQuery.OrderBy(expression);
+                    var expression = ((SortFilterString<T>) sortFilter).Expression;
+                    sortedQuery = sortFilter.Descending
+                        ? sortedQuery.OrderByDescending(expression)
+                        : sortedQuery.OrderBy(expression);
                     return sortedQuery;
                 }
 
                 if (sortFilter is SortFilterInt<T>) {
-                    var expression = ((SortFilterInt<T>)sortFilter).Expression;
-                    sortedQuery = sortFilter.Descending ?
-                        sortedQuery.OrderByDescending(expression) :
-                        sortedQuery.OrderBy(expression);
+                    var expression = ((SortFilterInt<T>) sortFilter).Expression;
+                    sortedQuery = sortFilter.Descending
+                        ? sortedQuery.OrderByDescending(expression)
+                        : sortedQuery.OrderBy(expression);
                     return sortedQuery;
                 }
             }
@@ -271,5 +313,31 @@ namespace DatabaseAccess {
         }
 
 
+        public static DbResult<T> Delete<T, TId>(
+            this DbContext dbAccess,
+            T entity)
+            where T : BaseAuditable<TId> {
+            var result = new DbResult<T> {
+                Entity = entity
+            };
+
+            if (null == entity) {
+                result.ResultCode = DbResultCode.EntityIsNull;
+                return result;
+            }
+
+            if (EqualityComparer<TId>.Default.Equals(entity.Id, default)) {
+                result.ResultCode = DbResultCode.Impractical;
+                return result;
+            }
+
+            dbAccess.Entry(entity).State = EntityState.Deleted;
+            var changes = dbAccess.SaveChanges();
+            if (0 == changes || dbAccess.Entry(entity).State != EntityState.Detached) {
+                result.ResultCode = DbResultCode.SaveFailed;
+            }
+
+            return result;
+        }
     }
 }
