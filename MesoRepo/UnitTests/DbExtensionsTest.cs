@@ -12,7 +12,7 @@ namespace UnitTests {
         [Test]
         [Order(1)]
         public void TestLifeCycle() {
-            var expAdminAdd = CreateAdministrator<ProjectAdministrator, int>();
+            var expAdminAdd = CreateAdministrator<ProjectAdministrator>();
             var addResult = DbAccess.Create<ProjectAdministrator, int>(expAdminAdd);
             Assert.True(addResult.Success);
             Assert.True(0 != expAdminAdd.Id);
@@ -25,8 +25,8 @@ namespace UnitTests {
             AssertTablePerHierarchy<ProjectAdministrator, int>(projectAdmin);
             AssertAdministrator(expAdminAdd, projectAdmin);
 
-            var expAdminUpdate = CreateAdministrator<ProjectAdministrator, int>(2);
-            ModifyAdministrator<ProjectAdministrator, int>(expAdminAdd, expAdminUpdate);
+            var expAdminUpdate = CreateAdministrator<ProjectAdministrator>(2);
+            ModifyAdministrator(expAdminAdd, expAdminUpdate);
             Assert.AreEqual(EntityState.Modified, DbAccess.Entry(expAdminAdd).State);
             var updateResult = DbAccess.Update<ProjectAdministrator, int>(expAdminAdd);
             Assert.True(updateResult.Success);
@@ -50,7 +50,7 @@ namespace UnitTests {
         [Test]
         [Order(2)]
         public void TestLifeCycleMany() {
-            var expAdministrators = CreateEntities(CreateAdministrator<ProjectAdministrator, int>, 3);
+            var expAdministrators = CreateEntities(CreateAdministrator<ProjectAdministrator>, 3);
             var createResults = DbAccess.Create<ProjectAdministrator, int>(expAdministrators);
             Assert.True(createResults.Success);
 
@@ -70,7 +70,7 @@ namespace UnitTests {
         [Test]
         [Order(3)]
         public void TestChangeType() {
-            var projectAdministrator = CreateAdministrator<ProjectAdministrator, int>();
+            var projectAdministrator = CreateAdministrator<ProjectAdministrator>();
             var addResult = DbAccess.Create<ProjectAdministrator, int>(projectAdministrator);
             Assert.True(addResult.Success);
 
@@ -86,20 +86,20 @@ namespace UnitTests {
         [Test]
         [Order(4)]
         public void TestLifeCycleId() {
-            var administrator1 = CreateAdministrator<ProjectAdministrator, int>();
+            var administrator1 = CreateAdministrator<ProjectAdministrator>();
             administrator1.Id = 1;
             var createResult1 = DbAccess.Create<ProjectAdministrator, int>(administrator1);
             Assert.False(createResult1.Success);
             Assert.AreEqual(DbResultCode.Impractical, createResult1.ResultCode);
             Assert.AreEqual(EntityState.Detached, DbAccess.Entry(administrator1).State);
 
-            var administrator2 = CreateAdministrator<ProjectAdministrator, int>(2);
+            var administrator2 = CreateAdministrator<ProjectAdministrator>(2);
             var updateResult = DbAccess.Update<ProjectAdministrator, int>(administrator2);
             Assert.False(updateResult.Success);
             Assert.AreEqual(DbResultCode.Impractical, updateResult.ResultCode);
             Assert.AreEqual(EntityState.Detached, DbAccess.Entry(administrator2).State);
 
-            var administrator3 = CreateAdministrator<ProjectAdministrator, int>(3);
+            var administrator3 = CreateAdministrator<ProjectAdministrator>(3);
             var deleteResult = DbAccess.Delete<ProjectAdministrator, int>(administrator3);
             Assert.False(deleteResult.Success);
             Assert.AreEqual(DbResultCode.Impractical, deleteResult.ResultCode);
@@ -109,20 +109,20 @@ namespace UnitTests {
         [Test]
         [Order(5)]
         public void TestLifeCycleDuplicate() {
-            var administrator1 = CreateAdministrator<ProjectAdministrator, int>();
+            var administrator1 = CreateAdministrator<ProjectAdministrator>();
             var createResult1 = DbAccess.Create<ProjectAdministrator, int>(administrator1);
             Assert.True(createResult1.Success);
 
-            var duplicateAdministrator = CreateAdministrator<ProjectAdministrator, int>();
+            var duplicateAdministrator = CreateAdministrator<ProjectAdministrator>();
             var duplicateResult = DbAccess.Create<ProjectAdministrator, int>(duplicateAdministrator);
             Assert.False(duplicateResult.Success);
             Assert.AreEqual(DbResultCode.Duplicate, duplicateResult.ResultCode);
 
-            var administrator2 = CreateAdministrator<ProjectAdministrator, int>(2);
+            var administrator2 = CreateAdministrator<ProjectAdministrator>(2);
             var createResult2 = DbAccess.Create<ProjectAdministrator, int>(administrator2);
             Assert.True(createResult2.Success);
 
-            ModifyAdministrator<ProjectAdministrator, int>(administrator2, administrator1);
+            ModifyAdministrator(administrator2, administrator1);
             var updateResult = DbAccess.Update<ProjectAdministrator, int>(administrator2);
             Assert.False(updateResult.Success);
             Assert.AreEqual(DbResultCode.Duplicate, updateResult.ResultCode);
@@ -135,7 +135,7 @@ namespace UnitTests {
             var administrators = new List<ProjectAdministrator>();
             while (administrators.Count < 25) {
                 var index = random.Next(1000);
-                var administrator = CreateAdministrator<ProjectAdministrator, int>(index);
+                var administrator = CreateAdministrator<ProjectAdministrator>(index);
                 if (administrators.All(a => a.UserIdentityName != administrator.UserIdentityName)) {
                     administrators.Add(administrator);
                 }
@@ -166,8 +166,8 @@ namespace UnitTests {
                     ? pagedResult.PageSize
                     : expRowCount % pagedResult.PageSize;
                 Assert.AreEqual(expPageSize, pagedResult.Results.Count());
-                for (int i = 0; i < expPageSize; i++) {
-                    var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize +i;
+                for (var i = 0; i < expPageSize; i++) {
+                    var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
                     Console.WriteLine($"Id {pagedResult.Results[i].Id} {pagedResult.Results[i].UserIdentityName}");
                     AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
                 }
@@ -181,7 +181,7 @@ namespace UnitTests {
             var administrators = new List<ProjectAdministrator>();
             while (administrators.Count < 25) {
                 var index = random.Next(1000);
-                var administrator = CreateAdministrator<ProjectAdministrator, int>(index);
+                var administrator = CreateAdministrator<ProjectAdministrator>(index);
                 if (administrators.All(a => a.UserIdentityName != administrator.UserIdentityName)) {
                     administrators.Add(administrator);
                 }
@@ -202,7 +202,7 @@ namespace UnitTests {
             for (var pageNumber = 1; pageNumber <= expPageCount; pageNumber++) {
                 Console.WriteLine($"Page {pageNumber}");
                 var pagedResult = new PagedResult<ProjectAdministrator> {
-                    SortFilters = new List<SortFilter<ProjectAdministrator>>{sortFilter},
+                    SortFilters = new List<SortFilter<ProjectAdministrator>> {sortFilter},
                     PageNumber = pageNumber
                 };
                 DbAccess.ReadPage<ProjectAdministrator, int>(pagedResult);
@@ -216,7 +216,7 @@ namespace UnitTests {
                     ? pagedResult.PageSize
                     : expRowCount % pagedResult.PageSize;
                 Assert.AreEqual(expPageSize, pagedResult.Results.Count());
-                for (int i = 0; i < expPageSize; i++) {
+                for (var i = 0; i < expPageSize; i++) {
                     var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
                     Console.WriteLine(pagedResult.Results[i].UserIdentityName);
                     AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
@@ -228,14 +228,14 @@ namespace UnitTests {
             for (var pageNumber = 1; pageNumber <= expPageCount; pageNumber++) {
                 Console.WriteLine($"Page {pageNumber}");
                 var pagedResult = new PagedResult<ProjectAdministrator> {
-                    SortFilters = new List<SortFilter<ProjectAdministrator>> { sortFilter },
+                    SortFilters = new List<SortFilter<ProjectAdministrator>> {sortFilter},
                     PageNumber = pageNumber
                 };
                 DbAccess.ReadPage<ProjectAdministrator, int>(pagedResult);
                 var expPageSize = pageNumber < expPageCount || 0 == expPageCount % pagedResult.PageSize
                     ? pagedResult.PageSize
                     : expRowCount % pagedResult.PageSize;
-                for (int i = 0; i < expPageSize; i++) {
+                for (var i = 0; i < expPageSize; i++) {
                     var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
                     Console.WriteLine(pagedResult.Results[i].UserIdentityName);
                     AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
@@ -246,13 +246,13 @@ namespace UnitTests {
         [Test]
         [Order(8)]
         public void TestPagedResultFiltered() {
-            var administrators = CreateEntities(CreateAdministrator<ProjectAdministrator, int>, 100);
+            var administrators = CreateEntities(CreateAdministrator<ProjectAdministrator>, 100);
 
             var createResults = DbAccess.Create<ProjectAdministrator, int>(administrators);
             Assert.True(createResults.Success);
             var expAdministrators = administrators
                 .Where(a => a.UserIdentityName.Contains("9"))
-                .OrderByDescending(a=>a.Id).ToList();
+                .OrderByDescending(a => a.Id).ToList();
 
             var expRowCount = expAdministrators.Count;
             var expPageCount = expRowCount / PagedResult<ProjectAdministrator>.PageSize_05;
@@ -278,20 +278,19 @@ namespace UnitTests {
                     ? pagedResult.PageSize
                     : expRowCount % pagedResult.PageSize;
                 Assert.AreEqual(expPageSize, pagedResult.Results.Count());
-                for (int i = 0; i < expPageSize; i++) {
+                for (var i = 0; i < expPageSize; i++) {
                     var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
                     Console.WriteLine(pagedResult.Results[i].UserIdentityName);
                     AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
                 }
             }
-
         }
 
 
         [Test]
         [Order(11)]
         public void TestCreateAdministratorUserIdentityName() {
-            var projectAdmin = CreateAdministrator<ProjectAdministrator, int>();
+            var projectAdmin = CreateAdministrator<ProjectAdministrator>();
             var targetFunction =
                 new Func<ProjectAdministrator, DbResult<ProjectAdministrator>>(DbAccess
                     .Create<ProjectAdministrator, int>);
@@ -302,7 +301,7 @@ namespace UnitTests {
         [Test]
         [Order(12)]
         public void TestCreateAdministratorName() {
-            var projectAdmin = CreateAdministrator<ProjectAdministrator, int>();
+            var projectAdmin = CreateAdministrator<ProjectAdministrator>();
             var targetFunction =
                 new Func<ProjectAdministrator, DbResult<ProjectAdministrator>>(DbAccess
                     .Create<ProjectAdministrator, int>);
@@ -312,7 +311,7 @@ namespace UnitTests {
         [Test]
         [Order(13)]
         public void TestCreateAdministratorEmail() {
-            var projectAdmin = CreateAdministrator<ProjectAdministrator, int>();
+            var projectAdmin = CreateAdministrator<ProjectAdministrator>();
             var targetFunction =
                 new Func<ProjectAdministrator, DbResult<ProjectAdministrator>>(DbAccess
                     .Create<ProjectAdministrator, int>);
@@ -322,7 +321,7 @@ namespace UnitTests {
         [Test]
         [Order(14)]
         public void TestCreateAdministratorPhone() {
-            var projectAdmin = CreateAdministrator<ProjectAdministrator, int>();
+            var projectAdmin = CreateAdministrator<ProjectAdministrator>();
             var targetFunction =
                 new Func<ProjectAdministrator, DbResult<ProjectAdministrator>>(DbAccess
                     .Create<ProjectAdministrator, int>);
@@ -332,7 +331,7 @@ namespace UnitTests {
         [Test]
         [Order(21)]
         public void TestUpdateAdministratorUserIdentityName() {
-            var administrator = CreateAdministrator<ProjectAdministrator, int>();
+            var administrator = CreateAdministrator<ProjectAdministrator>();
             var addResult = DbAccess.Create<ProjectAdministrator, int>(administrator);
             Assert.True(addResult.Success);
 
@@ -346,7 +345,7 @@ namespace UnitTests {
         [Test]
         [Order(22)]
         public void TestUpdateAdministratorName() {
-            var administrator = CreateAdministrator<ProjectAdministrator, int>();
+            var administrator = CreateAdministrator<ProjectAdministrator>();
             var addResult = DbAccess.Create<ProjectAdministrator, int>(administrator);
             Assert.True(addResult.Success);
 
@@ -359,7 +358,7 @@ namespace UnitTests {
         [Test]
         [Order(23)]
         public void TestUpdateAdministratorEmail() {
-            var administrator = CreateAdministrator<ProjectAdministrator, int>();
+            var administrator = CreateAdministrator<ProjectAdministrator>();
             var addResult = DbAccess.Create<ProjectAdministrator, int>(administrator);
             Assert.True(addResult.Success);
 
@@ -372,7 +371,7 @@ namespace UnitTests {
         [Test]
         [Order(24)]
         public void TestUpdateAdministratorPhone() {
-            var administrator = CreateAdministrator<ProjectAdministrator, int>();
+            var administrator = CreateAdministrator<ProjectAdministrator>();
             var addResult = DbAccess.Create<ProjectAdministrator, int>(administrator);
             Assert.True(addResult.Success);
 

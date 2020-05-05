@@ -23,12 +23,12 @@ namespace UnitTests {
         protected BaseTest() {
             var configurationService = ServiceProvider.GetService<IConfigurationService>();
             if (null == configurationService) {
-                throw new ArgumentNullException(typeof(IConfigurationService).Name);
+                throw new ArgumentNullException(nameof(IConfigurationService));
             }
 
             DbAccess = ServiceProvider.GetService<BaseDbContext>();
             if (null == DbAccess) {
-                throw new ArgumentNullException(typeof(BaseDbContext).Name);
+                throw new ArgumentNullException(nameof(BaseDbContext));
             }
 
             DbContextExtensions.Requestor = Requestor;
@@ -106,7 +106,7 @@ namespace UnitTests {
             return entities;
         }
 
-        public static T CreateAdministrator<T, TId>(int index = 1)
+        public static T CreateAdministrator<T>(int index = 1)
             where T : IAdministrator, new() {
             var administrator = new T {
                 UserIdentityName = $@"NU\{typeof(T).Name}_{index:D4}",
@@ -117,7 +117,7 @@ namespace UnitTests {
             return administrator;
         }
 
-        public static void ModifyAdministrator<T, TId>(T administrator, T expAdministrator)
+        public static void ModifyAdministrator<T>(T administrator, T expAdministrator)
             where T : IAdministrator {
             if (null != administrator && null != expAdministrator) {
                 administrator.UserIdentityName = expAdministrator.UserIdentityName;
