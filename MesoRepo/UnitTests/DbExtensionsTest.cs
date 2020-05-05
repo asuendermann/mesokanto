@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using DatabaseAccess;
+using DatabaseAccess.SortFilters;
 using DomainModel.Administration;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
@@ -125,6 +127,166 @@ namespace UnitTests {
             Assert.False(updateResult.Success);
             Assert.AreEqual(DbResultCode.Duplicate, updateResult.ResultCode);
         }
+
+        [Test]
+        [Order(6)]
+        public void TestPagedResult() {
+            var random = new Random(DateTime.Now.GetHashCode());
+            var administrators = new List<ProjectAdministrator>();
+            while (administrators.Count < 25) {
+                var index = random.Next(1000);
+                var administrator = CreateAdministrator<ProjectAdministrator, int>(index);
+                if (administrators.All(a => a.UserIdentityName != administrator.UserIdentityName)) {
+                    administrators.Add(administrator);
+                }
+            }
+
+            var createResults = DbAccess.Create<ProjectAdministrator, int>(administrators);
+            Assert.True(createResults.Success);
+            var expAdministrators = administrators.OrderByDescending(a => a.Id).ToList();
+            var expRowCount = administrators.Count;
+            var expPageCount = expRowCount / PagedResult<ProjectAdministrator>.PageSize_10;
+            if (0 < expRowCount % PagedResult<ProjectAdministrator>.PageSize_10) {
+                expPageCount++;
+            }
+
+            for (var pageNumber = 1; pageNumber <= expPageCount; pageNumber++) {
+                Console.WriteLine($"Page {pageNumber}");
+                var pagedResult = new PagedResult<ProjectAdministrator> {
+                    PageNumber = pageNumber
+                };
+                DbAccess.ReadPage<ProjectAdministrator, int>(pagedResult);
+
+                Assert.AreEqual(pageNumber, pagedResult.PageNumber);
+                Assert.AreEqual(expRowCount, pagedResult.RowCount);
+
+                Assert.AreEqual(expPageCount, pagedResult.PageCount);
+
+                var expPageSize = pageNumber < expPageCount || 0 == expPageCount % pagedResult.PageSize
+                    ? pagedResult.PageSize
+                    : expRowCount % pagedResult.PageSize;
+                Assert.AreEqual(expPageSize, pagedResult.Results.Count());
+                for (int i = 0; i < expPageSize; i++) {
+                    var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize +i;
+                    Console.WriteLine($"Id {pagedResult.Results[i].Id} {pagedResult.Results[i].UserIdentityName}");
+                    AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
+                }
+            }
+        }
+
+        [Test]
+        [Order(7)]
+        public void TestPagedResultSorted() {
+            var random = new Random(DateTime.Now.GetHashCode());
+            var administrators = new List<ProjectAdministrator>();
+            while (administrators.Count < 25) {
+                var index = random.Next(1000);
+                var administrator = CreateAdministrator<ProjectAdministrator, int>(index);
+                if (administrators.All(a => a.UserIdentityName != administrator.UserIdentityName)) {
+                    administrators.Add(administrator);
+                }
+            }
+
+            var createResults = DbAccess.Create<ProjectAdministrator, int>(administrators);
+            Assert.True(createResults.Success);
+            var expAdministrators = administrators.OrderBy(a => a.UserIdentityName).ToList();
+            var sortFilter = new SortFilterString<ProjectAdministrator> {
+                Expression = p => p.UserIdentityName
+            };
+            var expRowCount = administrators.Count;
+            var expPageCount = expRowCount / PagedResult<ProjectAdministrator>.PageSize_10;
+            if (0 < expRowCount % PagedResult<ProjectAdministrator>.PageSize_10) {
+                expPageCount++;
+            }
+
+            for (var pageNumber = 1; pageNumber <= expPageCount; pageNumber++) {
+                Console.WriteLine($"Page {pageNumber}");
+                var pagedResult = new PagedResult<ProjectAdministrator> {
+                    SortFilters = new List<SortFilter<ProjectAdministrator>>{sortFilter},
+                    PageNumber = pageNumber
+                };
+                DbAccess.ReadPage<ProjectAdministrator, int>(pagedResult);
+
+                Assert.AreEqual(pageNumber, pagedResult.PageNumber);
+                Assert.AreEqual(expRowCount, pagedResult.RowCount);
+
+                Assert.AreEqual(expPageCount, pagedResult.PageCount);
+
+                var expPageSize = pageNumber < expPageCount || 0 == expPageCount % pagedResult.PageSize
+                    ? pagedResult.PageSize
+                    : expRowCount % pagedResult.PageSize;
+                Assert.AreEqual(expPageSize, pagedResult.Results.Count());
+                for (int i = 0; i < expPageSize; i++) {
+                    var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
+                    Console.WriteLine(pagedResult.Results[i].UserIdentityName);
+                    AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
+                }
+            }
+
+            sortFilter.Descending = true;
+            expAdministrators = administrators.OrderByDescending(a => a.UserIdentityName).ToList();
+            for (var pageNumber = 1; pageNumber <= expPageCount; pageNumber++) {
+                Console.WriteLine($"Page {pageNumber}");
+                var pagedResult = new PagedResult<ProjectAdministrator> {
+                    SortFilters = new List<SortFilter<ProjectAdministrator>> { sortFilter },
+                    PageNumber = pageNumber
+                };
+                DbAccess.ReadPage<ProjectAdministrator, int>(pagedResult);
+                var expPageSize = pageNumber < expPageCount || 0 == expPageCount % pagedResult.PageSize
+                    ? pagedResult.PageSize
+                    : expRowCount % pagedResult.PageSize;
+                for (int i = 0; i < expPageSize; i++) {
+                    var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
+                    Console.WriteLine(pagedResult.Results[i].UserIdentityName);
+                    AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
+                }
+            }
+        }
+
+        [Test]
+        [Order(8)]
+        public void TestPagedResultFiltered() {
+            var administrators = CreateEntities(CreateAdministrator<ProjectAdministrator, int>, 100);
+
+            var createResults = DbAccess.Create<ProjectAdministrator, int>(administrators);
+            Assert.True(createResults.Success);
+            var expAdministrators = administrators
+                .Where(a => a.UserIdentityName.Contains("9"))
+                .OrderByDescending(a=>a.Id).ToList();
+
+            var expRowCount = expAdministrators.Count;
+            var expPageCount = expRowCount / PagedResult<ProjectAdministrator>.PageSize_05;
+            if (0 < expRowCount % PagedResult<ProjectAdministrator>.PageSize_05) {
+                expPageCount++;
+            }
+
+            for (var pageNumber = 1; pageNumber <= expPageCount; pageNumber++) {
+                Console.WriteLine($"Page {pageNumber}");
+                var pagedResult = new PagedResult<ProjectAdministrator> {
+                    PageSize = PagedResult<ProjectAdministrator>.PageSize_05,
+                    Filter = a => a.UserIdentityName.Contains("9"),
+                    PageNumber = pageNumber
+                };
+                DbAccess.ReadPage<ProjectAdministrator, int>(pagedResult);
+
+                Assert.AreEqual(pageNumber, pagedResult.PageNumber);
+                Assert.AreEqual(expRowCount, pagedResult.RowCount);
+
+                Assert.AreEqual(expPageCount, pagedResult.PageCount);
+
+                var expPageSize = pageNumber < expPageCount || 0 == expPageCount % pagedResult.PageSize
+                    ? pagedResult.PageSize
+                    : expRowCount % pagedResult.PageSize;
+                Assert.AreEqual(expPageSize, pagedResult.Results.Count());
+                for (int i = 0; i < expPageSize; i++) {
+                    var index = (pagedResult.PageNumber - 1) * pagedResult.PageSize + i;
+                    Console.WriteLine(pagedResult.Results[i].UserIdentityName);
+                    AssertAdministrator(expAdministrators[index], pagedResult.Results[i]);
+                }
+            }
+
+        }
+
 
         [Test]
         [Order(11)]

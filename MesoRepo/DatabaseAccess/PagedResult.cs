@@ -7,6 +7,7 @@ using System.Linq.Expressions;
 namespace DatabaseAccess {
     public class PagedResult<T>
         where T : class {
+        public const int PageSize_05 = 5;
         public const int PageSize_10 = 10;
 
         public PagedResult() {
@@ -19,7 +20,7 @@ namespace DatabaseAccess {
 
         public ICollection<SortFilter<T>> SortFilters { get; set; }
 
-        public IEnumerable<T> Results { get; set; }
+        public IList<T> Results { get; set; }
 
         public int PageNumber { get; set; }
 

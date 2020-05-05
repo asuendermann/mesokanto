@@ -322,7 +322,7 @@ namespace DatabaseAccess {
                 }
             }
 
-            result.Results = results;
+            result.Results = results.AsNoTracking().ToList();
         }
 
         public static IQueryable<T> Query<T, TId>(

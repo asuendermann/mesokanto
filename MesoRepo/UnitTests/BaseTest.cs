@@ -109,7 +109,7 @@ namespace UnitTests {
         public static T CreateAdministrator<T, TId>(int index = 1)
             where T : IAdministrator, new() {
             var administrator = new T {
-                UserIdentityName = $@"NU\{typeof(T).Name}_{index:D2}",
+                UserIdentityName = $@"NU\{typeof(T).Name}_{index:D4}",
                 Name = $"ncoretest_name {index}",
                 Email = $"ncoretest.{typeof(T).Name}_{index}@ncoretest.com",
                 Phone = $"{index:D4}"
