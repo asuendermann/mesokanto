@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Commons.Configuration;
@@ -94,6 +95,17 @@ namespace UnitTests {
             }
         }
 
+        protected ICollection<T> CreateEntities<T>(Func<int, T> initializerFunction, int count)
+            where T : class, new() {
+            var entities = new List<T>();
+            for (var index = 1; index <= count; index++) {
+                var entity = initializerFunction(index);
+                entities.Add(entity);
+            }
+
+            return entities;
+        }
+
         public static T CreateAdministrator<T, TId>(int index = 1)
             where T : IAdministrator, new() {
             var administrator = new T {
@@ -116,11 +128,11 @@ namespace UnitTests {
         }
 
         protected void ValidateRequiredStringTests<T, TId>(
-    T entity,
-    string propertyName,
-    int maxLength,
-    Func<T, DbResult<T>> targetFunction)
-    where T : BaseAuditable<TId> {
+            T entity,
+            string propertyName,
+            int maxLength,
+            Func<T, DbResult<T>> targetFunction)
+            where T : BaseAuditable<TId> {
             DbResult<T> TargetFunction() {
                 return targetFunction(entity);
             }
@@ -191,6 +203,7 @@ namespace UnitTests {
 
             return sb.ToString();
         }
+
         protected static string CreateEmailString(int maxLength) {
             var sb = new StringBuilder();
             for (var i = 1; i <= maxLength - 7; i++) {

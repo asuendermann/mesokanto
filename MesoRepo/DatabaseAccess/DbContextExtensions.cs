@@ -144,6 +144,41 @@ namespace DatabaseAccess {
             return result;
         }
 
+        public static DbResults<T> Create<T, TId>(this DbContext dbContext, IEnumerable<T> entities)
+            where T : BaseAuditable<TId> {
+            var results = new DbResults<T>();
+            if (null != entities) {
+                using var transaction = dbContext.Database.BeginTransaction();
+                foreach (var entity in entities) {
+                    var result = dbContext.CheckCreateEntity<T, TId>(entity);
+
+                    if (result.Success) {
+                        dbContext.Entry(entity).State = EntityState.Added;
+
+                        var changed = dbContext.SaveChanges();
+                        var entityAdded = dbContext.Entry(entity).State == EntityState.Unchanged;
+                        if (0 == changed || !entityAdded) {
+                            result.ResultCode |= DbResultCode.SaveFailed;
+                        }
+                    }
+
+                    if (!result.Success) {
+                        dbContext.Entry(entity).State = EntityState.Detached;
+                    }
+
+                    results.Results.Add(result);
+                }
+
+                if (results.Success) {
+                    transaction.Commit();
+                } else {
+                    transaction.Rollback();
+                }
+            }
+
+            return results;
+        }
+
 
         public static DbResult<T> CheckCreateEntity<T, TId>(this DbContext dbContext, T entity)
             where T : BaseAuditable<TId> {
@@ -222,6 +257,35 @@ namespace DatabaseAccess {
             }
 
             return result;
+        }
+
+        public static IList<T> Read<T, TId>(
+            this DbContext dbAccess,
+            params Expression<Func<T, object>>[] paths)
+            where T : BaseAuditable<TId> {
+            var model = dbAccess.Set<T>().AsQueryable();
+            if (null != paths) {
+                foreach (var path in paths) {
+                    model = model.Include(path);
+                }
+            }
+
+            return model.AsNoTracking().ToList();
+        }
+
+        public static IList<T> Read<T, TId>(
+            this DbContext dbAccess,
+            Expression<Func<T, bool>> filter, 
+            params Expression<Func<T, object>>[] paths)
+            where T : BaseAuditable<TId> {
+            var model = dbAccess.Set<T>().AsQueryable();
+            if (null != paths) {
+                foreach (var path in paths) {
+                    model = model.Include(path);
+                }
+            }
+
+            return model.Where(filter).AsNoTracking().ToList();
         }
 
         public static T ReadSingle<T, TId>(
@@ -338,6 +402,57 @@ namespace DatabaseAccess {
             }
 
             return result;
+        }
+
+        /// <summary>
+        ///     this method needs to be handled with much care.
+        ///     First, the input list must not stem from a request finishing with a call to AsNoTracking method.
+        ///     Second, the query from which the input stems must be closed properly.
+        ///     This means that the result of a query must be cast to any kind of IEnumerable (List, Array)
+        ///     which will close the preceding query.
+        /// </summary>
+        /// <param name="dbAccess"></param>
+        /// <param name="entities"></param>
+        /// <returns></returns>
+        public static DbResults<T> Delete<T, TId>(this DbContext dbAccess, IEnumerable<T> entities)
+            where T : BaseAuditable<TId> {
+            var results = new DbResults<T>();
+            if (null != entities) {
+                using var transaction = dbAccess.Database.BeginTransaction();
+                foreach (var entity in entities) {
+                    var result = new DbResult<T> {
+                        Entity = entity
+                    };
+
+                    if (null == entity) {
+                        result.ResultCode = DbResultCode.EntityIsNull;
+                        continue;
+                    }
+
+                    // Check 1: model has no unique key - skip 
+                    if (EqualityComparer<TId>.Default.Equals(entity.Id, default)) {
+                        result.ResultCode = DbResultCode.Impractical;
+                        continue;
+                    }
+
+                    // Check 2: model can be deleted
+                    dbAccess.Entry(entity).State = EntityState.Deleted;
+                    var changes = dbAccess.SaveChanges();
+                    if (0 == changes || dbAccess.Entry(entity).State != EntityState.Detached) {
+                        result.ResultCode = DbResultCode.SaveFailed;
+                    }
+
+                    results.Results.Add(result);
+                }
+
+                if (results.Success) {
+                    transaction.Commit();
+                } else {
+                    transaction.Rollback();
+                }
+            }
+
+            return results;
         }
     }
 }
