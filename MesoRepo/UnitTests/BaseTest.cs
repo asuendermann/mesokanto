@@ -43,6 +43,9 @@ namespace UnitTests {
             foreach (var administrator in DbAccess.Set<Administrator>().ToList()) {
                 DbAccess.Remove(administrator);
             }
+            foreach (var project in DbAccess.Set<Project>().ToList()) {
+                DbAccess.Remove(project);
+            }
 
             DbAccess.SaveChanges();
         }
@@ -115,6 +118,15 @@ namespace UnitTests {
                 Phone = $"{index:D4}"
             };
             return administrator;
+        }
+
+        public static T CreateProject<T>(int index = 1)
+            where T : IProject, new() {
+            var project = new T {
+                Name = $"Project {index:d4}",
+                Description = $"Description of Project {index:D4}"
+            };
+            return project;
         }
 
         public static void ModifyAdministrator<T>(T administrator, T expAdministrator)

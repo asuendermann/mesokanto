@@ -39,12 +39,26 @@ namespace DatabaseAccess {
 
             modelBuilder.Entity<Administrator>().ToTable("Administrators")
                 .HasDiscriminator<string>("Discriminator")
-                .HasValue<ProjectAdministrator>(typeof(ProjectAdministrator).Name)
-                .HasValue<MasterAdministrator>(typeof(MasterAdministrator).Name);
+                .HasValue<Administrator>(nameof(Administrator))
+                .HasValue<MasterAdministrator>(nameof(MasterAdministrator));
 
             modelBuilder.Entity<Administrator>().HasKey(p => p.Id);
             modelBuilder.Entity<Administrator>()
                 .HasIndex(w => w.UserIdentityName).IsUnique();
+
+            modelBuilder.Entity<Project>().HasKey(p => p.Id);
+            modelBuilder.Entity<Project>()
+                .HasIndex(w => w.Name).IsUnique();
+
+            modelBuilder.Entity<ProjectAdministrator>().HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectAdministrator>().HasOne<Administrator>(nameof(Administrator))
+                .WithMany(l => l.AdministratorProjects)
+                .HasForeignKey(p => p.AdministratorId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectAdministrator>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectAdministrators)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
         }
 
         public override int SaveChanges() {
