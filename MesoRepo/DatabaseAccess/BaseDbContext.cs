@@ -1,13 +1,11 @@
 ﻿
 using Commons.Configuration;
-
-using DomainModel.Administration;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 using System;
+using DomainModel.Scrum;
 
 namespace DatabaseAccess {
     public class BaseDbContext : DbContext, IDesignTimeDbContextFactory<BaseDbContext> {
@@ -37,27 +35,73 @@ namespace DatabaseAccess {
 
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Administrator>().ToTable("Administrators")
-                .HasDiscriminator<string>("Discriminator")
-                .HasValue<Administrator>(nameof(Administrator))
-                .HasValue<MasterAdministrator>(nameof(MasterAdministrator));
-
-            modelBuilder.Entity<Administrator>().HasKey(p => p.Id);
-            modelBuilder.Entity<Administrator>()
-                .HasIndex(w => w.UserIdentityName).IsUnique();
-
-            modelBuilder.Entity<Project>().HasKey(p => p.Id);
             modelBuilder.Entity<Project>()
-                .HasIndex(w => w.Name).IsUnique();
+                .ToTable("Projects")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<Project>()
+                .HasIndex(w => w.Identifier).IsUnique();
 
-            modelBuilder.Entity<ProjectAdministrator>().HasKey(p => p.Id);
-            modelBuilder.Entity<ProjectAdministrator>().HasOne<Administrator>(nameof(Administrator))
-                .WithMany(l => l.AdministratorProjects)
-                .HasForeignKey(p => p.AdministratorId)
-                .IsRequired();
-            modelBuilder.Entity<ProjectAdministrator>().HasOne<Project>(nameof(Project))
-                .WithMany(l => l.ProjectAdministrators)
+            modelBuilder.Entity<TeamMember>()
+                .ToTable("TeamMembers")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<TeamMember>()
+                .HasIndex(w => w.UserId).IsUnique();
+            modelBuilder.Entity<TeamMember>()
+                .HasDiscriminator<string>("Discriminator")
+                .HasValue<TeamMember>(nameof(TeamMember))
+                .HasValue<Owner>(nameof(Owner))
+                .HasValue<ScrumMaster>(nameof(ScrumMaster));
+
+            modelBuilder.Entity<ProjectTeamMember>()
+                .ToTable("ProjectTeamMembers")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectTeamMember>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectTeamMembers)
                 .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectTeamMember>().HasOne<TeamMember>(nameof(TeamMember))
+                .WithMany(l => l.TeamMemberProjects)
+                .HasForeignKey(p => p.TeamMemberId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<ProjectScrumMaster>()
+                .ToTable("ProjectScrumMasters")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectScrumMaster>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectScrumMasters)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectScrumMaster>().HasOne<ScrumMaster>(nameof(ScrumMaster))
+                .WithMany(l => l.ScrumMasterProjects)
+                .HasForeignKey(p => p.ScrumMasterId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<ProjectOwner>()
+                .ToTable("ProjectOwners")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectOwner>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectOwners)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectOwner>().HasOne<Owner>(nameof(Owner))
+                .WithMany(l => l.OwnerProjects)
+                .HasForeignKey(p => p.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<BacklogItem>()
+                .ToTable("BacklogItems")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<BacklogItem>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.BacklogItems)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<BacklogItem>().HasOne<ProjectOwner>("Author")
+                .WithMany(l => l.BacklogItems)
+                .HasForeignKey(p => p.ProjectOwnerId)
+                .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired();
         }
 

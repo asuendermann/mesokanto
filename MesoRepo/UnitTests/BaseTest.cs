@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using Commons.Configuration;
 using Commons.DomainModel.Base;
-using Commons.DomainModel.Domain;
+using Commons.DomainModel.Scrum;
 using DatabaseAccess;
-using DomainModel.Administration;
 using DomainModel.Base;
+using DomainModel.Scrum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -40,11 +40,12 @@ namespace UnitTests {
         [SetUp]
         public virtual void Setup() {
             DbAccess.DetachAllEntities();
-            foreach (var administrator in DbAccess.Set<Administrator>().ToList()) {
-                DbAccess.Remove(administrator);
-            }
             foreach (var project in DbAccess.Set<Project>().ToList()) {
                 DbAccess.Remove(project);
+            }
+
+            foreach (var teamMember in DbAccess.Set<TeamMember>().ToList()) {
+                DbAccess.Remove(teamMember);
             }
 
             DbAccess.SaveChanges();
@@ -74,17 +75,39 @@ namespace UnitTests {
             }
         }
 
-        public static void AssertAdministrator<T1, T2>(T1 expAdministrator, T2 administrator)
-            where T1 : IAdministrator
-            where T2 : IAdministrator {
-            if (null == administrator || null == expAdministrator) {
+        public static void AssertProject(Project expProject, Project project) {
+            if (null == project || null == expProject) {
                 Assert.Fail();
             }
 
-            Assert.AreEqual(expAdministrator.UserIdentityName, administrator.UserIdentityName);
-            Assert.AreEqual(expAdministrator.Name, administrator.Name);
-            Assert.AreEqual(expAdministrator.Email, administrator.Email);
-            Assert.AreEqual(expAdministrator.Phone, administrator.Phone);
+            Assert.AreEqual(expProject.Identifier, project.Identifier);
+            Assert.AreEqual(expProject.Title, project.Title);
+            Assert.AreEqual(expProject.Description, project.Description);
+
+            var expPtms = expProject.ProjectTeamMembers?.ToList() ?? new List<ProjectTeamMember>();
+            var ptms = project.ProjectTeamMembers?.ToList() ?? new List<ProjectTeamMember>();
+            if (expPtms.Any()) {
+                Assert.AreEqual(expPtms.Count(), ptms.Count());
+                foreach (var expPtm in expPtms) {
+                    var ptm = ptms.FirstOrDefault(p => p.TeamMemberId == expPtm.TeamMemberId);
+                    Assert.NotNull(ptm);
+                    AssertTeamMember(expPtm.TeamMember, ptm.TeamMember);
+                }
+            } else {
+                Assert.False(ptms.Any());
+            }
+
+        }
+
+        public static void AssertTeamMember<T1, T2>(T1 expTeamMember, T2 teamMember)
+            where T1 : ITeamMember
+            where T2 : ITeamMember {
+            if (null == teamMember || null == expTeamMember) {
+                Assert.Fail();
+            }
+
+            Assert.AreEqual(expTeamMember.Name, teamMember.Name);
+            Assert.AreEqual(expTeamMember.Email, teamMember.Email);
         }
 
         protected void ChangeTypeOfEntry<T1, T2, TId>(T1 entry)
@@ -109,35 +132,108 @@ namespace UnitTests {
             return entities;
         }
 
-        public static T CreateAdministrator<T>(int index = 1)
-            where T : IAdministrator, new() {
-            var administrator = new T {
-                UserIdentityName = $@"NU\{typeof(T).Name}_{index:D4}",
-                Name = $"ncoretest_name {index}",
-                Email = $"ncoretest.{typeof(T).Name}_{index}@ncoretest.com",
-                Phone = $"{index:D4}"
-            };
-            return administrator;
-        }
-
         public static T CreateProject<T>(int index = 1)
             where T : IProject, new() {
             var project = new T {
-                Name = $"Project {index:d4}",
+                Identifier = $"{DateTime.Today.Year}-{index:d4}",
+                Title = $"Project {index:d4}",
                 Description = $"Description of Project {index:D4}"
             };
             return project;
         }
 
-        public static void ModifyAdministrator<T>(T administrator, T expAdministrator)
-            where T : IAdministrator {
-            if (null != administrator && null != expAdministrator) {
-                administrator.UserIdentityName = expAdministrator.UserIdentityName;
-                administrator.Name = expAdministrator.Name;
-                administrator.Email = expAdministrator.Email;
-                administrator.Phone = expAdministrator.Phone;
+        public static T CreateTeamMember<T>(int index = 1)
+            where T : ITeamMember, new() {
+            var teamMember = new T {
+                UserId = $"UID_{index:d4}",
+                Name = $"Project {index:d4}",
+                Email = $"email.{index:D4}@mesorepo.com"
+            };
+            return teamMember;
+        }
+
+        public static void ModifyProject<T>(T project, T expProject)
+            where T : IProject {
+            if (null != project && null != expProject) {
+                project.Identifier = expProject.Identifier;
+                project.Title = expProject.Title;
+                project.Description = expProject.Description;
             }
         }
+
+        public static void ModifyTeamMember<T>(T teamMember, T expTeamMember)
+            where T : ITeamMember {
+            if (null != teamMember && null != expTeamMember) {
+                teamMember.UserId = expTeamMember.UserId;
+                teamMember.Name = expTeamMember.Name;
+                teamMember.Email = expTeamMember.Email;
+            }
+        }
+
+        protected void ValidateNullableStringTests<T, TId>(
+            string propertyName,
+            int maxLength,
+            Func<int,T> createFunction,
+            Func<T, DbResult<T>> targetFunction)
+            where T : BaseAuditable<TId> {
+            DbResult<T> TargetFunction(T entity ) {
+                return targetFunction(entity);
+            }
+
+            var propertyInfo = typeof(T).GetProperty(propertyName);
+            Assert.NotNull(propertyInfo);
+
+            var entity1 = createFunction(1);
+            propertyInfo.SetValue(entity1, null);
+            var resultNull = TargetFunction(entity1);
+            Assert.True(resultNull.Success);
+
+            var entity2 = createFunction(2);
+            propertyInfo.SetValue(entity2, string.Empty);
+            var resultEmpty = TargetFunction(entity2);
+            Assert.True(resultEmpty.Success);
+
+            var entity3 = createFunction(3);
+            propertyInfo.SetValue(entity3, CreateString(maxLength));
+            var resultMaxLength = TargetFunction(entity3);
+            Assert.True(resultMaxLength.Success);
+
+            var entity4 = createFunction(4);
+            propertyInfo.SetValue(entity4, CreateString(maxLength + 1));
+            var resultTooLong = TargetFunction(entity4);
+            Assert.AreEqual(DbResultCode.ValidationFailed, resultTooLong.ResultCode);
+        }
+
+        protected void ValidateNullableStringTests<T, TId>(
+            T entity,
+            string propertyName,
+            int maxLength,
+            Func<T, DbResult<T>> targetFunction)
+            where T : BaseAuditable<TId> {
+            DbResult<T> TargetFunction() {
+                return targetFunction(entity);
+            }
+
+            var propertyInfo = typeof(T).GetProperty(propertyName);
+            Assert.NotNull(propertyInfo);
+
+            propertyInfo.SetValue(entity, null);
+            var resultNull = TargetFunction();
+            Assert.True(resultNull.Success);
+
+            propertyInfo.SetValue(entity, string.Empty);
+            var resultEmpty = TargetFunction();
+            Assert.True(resultEmpty.Success);
+
+            propertyInfo.SetValue(entity, CreateString(maxLength));
+            var resultMaxLength = TargetFunction();
+            Assert.True(resultMaxLength.Success);
+
+            propertyInfo.SetValue(entity, CreateString(maxLength + 1));
+            var resultTooLong = TargetFunction();
+            Assert.AreEqual(DbResultCode.ValidationFailed, resultTooLong.ResultCode);
+        }
+
 
         protected void ValidateRequiredStringTests<T, TId>(
             T entity,
