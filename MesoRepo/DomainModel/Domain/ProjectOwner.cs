@@ -2,7 +2,7 @@
 using Commons.DomainModel.Scrum;
 using DomainModel.Base;
 
-namespace DomainModel.Scrum {
+namespace DomainModel.Domain {
     public class ProjectOwner : BaseAuditable<int>, IProjectOwner {
         public IEnumerable<BacklogItem> BacklogItems { get; set; }
 

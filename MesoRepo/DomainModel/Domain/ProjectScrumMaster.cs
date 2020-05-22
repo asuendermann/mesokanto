@@ -1,7 +1,7 @@
 ﻿using Commons.DomainModel.Scrum;
 using DomainModel.Base;
 
-namespace DomainModel.Scrum {
+namespace DomainModel.Domain {
     public class ProjectScrumMaster : BaseAuditable<int>, IProjectScrumMaster {
         public Project Project { get; set; }
 

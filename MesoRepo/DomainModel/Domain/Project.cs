@@ -6,7 +6,7 @@ using Commons.DomainModel.Base;
 using Commons.DomainModel.Scrum;
 using DomainModel.Base;
 
-namespace DomainModel.Scrum {
+namespace DomainModel.Domain {
     public class Project : BaseAuditable<int>, IProject, IUniqueAuditable {
         public IEnumerable<ProjectTeamMember> ProjectTeamMembers { get; set; }
 

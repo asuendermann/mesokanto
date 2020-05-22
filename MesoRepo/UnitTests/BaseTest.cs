@@ -7,7 +7,7 @@ using Commons.DomainModel.Base;
 using Commons.DomainModel.Scrum;
 using DatabaseAccess;
 using DomainModel.Base;
-using DomainModel.Scrum;
+using DomainModel.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;

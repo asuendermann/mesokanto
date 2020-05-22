@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DomainModel.Scrum {
+namespace DomainModel.Domain {
     public class ScrumMaster : TeamMember {
         public IEnumerable<ProjectScrumMaster> ScrumMasterProjects { get; set; }
     }

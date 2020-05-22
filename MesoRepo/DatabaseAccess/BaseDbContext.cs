@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
 using System;
-using DomainModel.Scrum;
+using DomainModel.Domain;
 
 namespace DatabaseAccess {
     public class BaseDbContext : DbContext, IDesignTimeDbContextFactory<BaseDbContext> {

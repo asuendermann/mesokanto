@@ -7,7 +7,7 @@ using Commons.DomainModel.Base;
 using Commons.DomainModel.Scrum;
 using DomainModel.Base;
 
-namespace DomainModel.Scrum {
+namespace DomainModel.Domain {
     public class TeamMember : BaseTablePerHierarchy<int>, ITeamMember, IUniqueAuditable {
 
         public IEnumerable<ProjectTeamMember> TeamMemberProjects { get; set; }

@@ -4,7 +4,7 @@ using System.Linq;
 using Commons.DomainModel;
 using DatabaseAccess;
 using DatabaseAccess.SortFilters;
-using DomainModel.Scrum;
+using DomainModel.Domain;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 

@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Commons.DomainModel;
 using Commons.DomainModel.Scrum;
 using DomainModel.Base;
 
-namespace DomainModel.Scrum {
+namespace DomainModel.Domain {
     public class BacklogItem : BaseAuditable<int>, IBacklogItem {
         public int ProjectOwnerId { get; set; }
 
