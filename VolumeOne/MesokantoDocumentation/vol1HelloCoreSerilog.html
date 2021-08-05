@@ -298,7 +298,7 @@
     
     <p>
         .NET Core unterstützt das Arbeiten mit mehreren Konfigurationsprofilen.
-        Im Projekt gibt es die Datei <code>Properties/lauchSettings.json</code>, in der die verschiedenen Profile definiert werden.
+        Im Projekt gibt es die Datei <code>Properties/launchSettings.json</code>, in der die verschiedenen Profile definiert werden.
         Bearbeitet wird diese Datei über Project/Properties/Debug Maske. Sie öffnet sich über einen Rechtsklick auf das Projekt und die Auswahl des letzten Menüpunktes "Properties".
         Dort den Reiter "Debug" auswählen.
         Ein Standardprofil wird immer beim Hinzufügen des Projektes immer angelegt, nicht jedoch die <code>launchSettings.json</code> Datei.
@@ -314,8 +314,9 @@
     <p>
         Beim Einlesen der Projektkonfiguration können mehrere Profildateien kumuliert werden. 
         Im HelloCore Projekt wird die Logging-Konfiguration in zwei Schritten aufgebaut:
-<pre><code>.AddJsonFile("appsettings.json", false, true)
-.AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"}.json",true)
+<pre><code>
+    .AddJsonFile("serilogsettings.json", false, true)
+    .AddJsonFile($"serilogsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"}.json",true)
 </code></pre>
     </p>
 
