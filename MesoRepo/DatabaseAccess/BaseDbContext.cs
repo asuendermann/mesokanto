@@ -1,36 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-
+﻿
 using Commons.Configuration;
-using Commons.DomainModel.Base;
-
-using DomainModel.Administration;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-using Serilog;
+using System;
+using DomainModel.Domain;
 
 namespace DatabaseAccess {
     public class BaseDbContext : DbContext, IDesignTimeDbContextFactory<BaseDbContext> {
+
         public BaseDbContext(DbContextOptions<BaseDbContext> options) : base(options) {
-            Requestor = typeof(BaseDbContext).Name;
         }
 
-        public string Requestor { get; set; }
-
-        public DbSet<Administrator> Administrators { get; set; }
-
-        public DbSet<ProjectAdministrator> ProjectAdministrators { get; set; }
-
-        public DbSet<MasterAdministrator> MasterAdministrators { get; set; }
-
         public BaseDbContext CreateDbContext(string[] args) {
-            var configuration = ConfigurationTk.ConfigureFromFile();
-            var connectionStringName = configuration.GetAppSetting(ConfigurationTk.ProjectConnectionString);
+            var configuration = Commons.Configuration.ConfigurationExtensions.ConfigureFromFile();
+            var connectionStringName = configuration.GetAppSetting(Commons.Configuration.ConfigurationExtensions.KeyProjectConnectionString);
             var connectionString = configuration.GetConnectionString(connectionStringName);
 
             var optionsBuilder = new DbContextOptionsBuilder<BaseDbContext>();
@@ -39,52 +24,8 @@ namespace DatabaseAccess {
             return new BaseDbContext(optionsBuilder.Options);
         }
 
-        public virtual void MarkEntries<T>(DateTime timeStamp, string requestor) {
-            foreach (var entity in ChangeTracker.Entries<BaseAuditable<T>>()) {
-                switch (entity.State) {
-                    case EntityState.Modified:
-                        entity.Entity.ModifiedAt = timeStamp;
-                        entity.Entity.ModifiedBy = requestor;
-
-                        break;
-                    case EntityState.Added:
-                        entity.Entity.CreatedAt = timeStamp;
-                        entity.Entity.CreatedBy = requestor;
-                        break;
-                }
-            }
-        }
-
         /// <summary>
-        ///     Validation should be done on each layer separately.
-        ///     We perform an extensive validation to handle ValidationAttributes set outside
-        ///     the context of EF and database. EF Core does not do this anymore (EF6 did).
-        /// </summary>
-        public virtual void ValidateChanges() {
-            var errorMessages = new List<string>();
-            foreach (var entry in ChangeTracker.Entries()
-                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified)) {
-                var entity = entry.Entity;
-                var context = new ValidationContext(entity);
-                var results = new List<ValidationResult>();
-
-                if (Validator.TryValidateObject(entity, context, results, true) == false) {
-                    foreach (var result in results) {
-                        if (result != ValidationResult.Success) {
-                            errorMessages.Add(result.ErrorMessage);
-                            Log.Error(result.ErrorMessage);
-                        }
-                    }
-                }
-            }
-
-            if (errorMessages.Any()) {
-                throw new ValidationException(string.Join(';', errorMessages));
-            }
-        }
-
-        /// <summary>
-        ///     uses EF Fluent API to refine data model.
+        ///     uses EF Fluent API to define data model.
         /// </summary>
         /// <param name="modelBuilder"></param>
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
@@ -94,30 +35,81 @@ namespace DatabaseAccess {
 
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Administrator>().ToTable("Administrators")
-                .HasDiscriminator<string>("Discriminator")
-                .HasValue<ProjectAdministrator>(typeof(ProjectAdministrator).Name)
-                .HasValue<MasterAdministrator>(typeof(MasterAdministrator).Name);
+            modelBuilder.Entity<Project>()
+                .ToTable("Projects")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<Project>()
+                .HasIndex(w => w.Identifier).IsUnique();
 
-            modelBuilder.Entity<Administrator>().HasKey(p => p.Id);
-            modelBuilder.Entity<Administrator>()
-                .HasIndex(w => w.UserIdentityName).IsUnique();
+            modelBuilder.Entity<TeamMember>()
+                .ToTable("TeamMembers")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<TeamMember>()
+                .HasIndex(w => w.UserId).IsUnique();
+            modelBuilder.Entity<TeamMember>()
+                .HasDiscriminator<string>("Discriminator")
+                .HasValue<TeamMember>(nameof(TeamMember))
+                .HasValue<Owner>(nameof(Owner))
+                .HasValue<ScrumMaster>(nameof(ScrumMaster));
+
+            modelBuilder.Entity<ProjectTeamMember>()
+                .ToTable("ProjectTeamMembers")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectTeamMember>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectTeamMembers)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectTeamMember>().HasOne<TeamMember>(nameof(TeamMember))
+                .WithMany(l => l.TeamMemberProjects)
+                .HasForeignKey(p => p.TeamMemberId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<ProjectScrumMaster>()
+                .ToTable("ProjectScrumMasters")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectScrumMaster>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectScrumMasters)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectScrumMaster>().HasOne<ScrumMaster>(nameof(ScrumMaster))
+                .WithMany(l => l.ScrumMasterProjects)
+                .HasForeignKey(p => p.ScrumMasterId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<ProjectOwner>()
+                .ToTable("ProjectOwners")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<ProjectOwner>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.ProjectOwners)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<ProjectOwner>().HasOne<Owner>(nameof(Owner))
+                .WithMany(l => l.OwnerProjects)
+                .HasForeignKey(p => p.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
+
+            modelBuilder.Entity<BacklogItem>()
+                .ToTable("BacklogItems")
+                .HasKey(p => p.Id);
+            modelBuilder.Entity<BacklogItem>().HasOne<Project>(nameof(Project))
+                .WithMany(l => l.BacklogItems)
+                .HasForeignKey(p => p.ProjectId)
+                .IsRequired();
+            modelBuilder.Entity<BacklogItem>().HasOne<ProjectOwner>("Author")
+                .WithMany(l => l.BacklogItems)
+                .HasForeignKey(p => p.ProjectOwnerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired();
         }
 
         public override int SaveChanges() {
-            var now = DateTime.UtcNow;
-            var requestor = Requestor;
-            MarkEntries<int>(now, requestor);
-
-            ValidateChanges();
+            this.MarkEntries<int>();
+            this.ValidateChanges();
 
             return base.SaveChanges();
-        }
-
-        public virtual void DetachAllEntities() {
-            foreach (var entry in ChangeTracker.Entries()) {
-                entry.State = EntityState.Detached;
-            }
         }
     }
 }

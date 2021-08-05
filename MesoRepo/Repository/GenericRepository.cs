@@ -1,18 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Linq.Expressions;
-
-using Commons.DomainModel.Base;
+﻿using Commons.DomainModel.Base;
 
 using DatabaseAccess;
 
 using DomainModel.Administration;
-
+using DomainModel.Base;
 using Microsoft.EntityFrameworkCore;
 
 using Repository.SortFilters;
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace Repository {
     /// <summary>
@@ -128,7 +128,7 @@ namespace Repository {
 
             foreach (var sortFilter in sortFilters) {
                 if (sortFilter is SortFilterString<T>) {
-                    var expression = ((SortFilterString<T>) sortFilter).Expression;
+                    var expression = ((SortFilterString<T>)sortFilter).Expression;
                     sortedQuery = sortFilter.Descending ?
                         sortedQuery.OrderByDescending(expression) :
                         sortedQuery.OrderBy(expression);
@@ -136,7 +136,7 @@ namespace Repository {
                 }
 
                 if (sortFilter is SortFilterInt<T>) {
-                    var expression = ((SortFilterInt<T>) sortFilter).Expression;
+                    var expression = ((SortFilterInt<T>)sortFilter).Expression;
                     sortedQuery = sortFilter.Descending ?
                         sortedQuery.OrderByDescending(expression) :
                         sortedQuery.OrderBy(expression);
@@ -157,7 +157,7 @@ namespace Repository {
 
             result.RowCount = sortedQuery.Count();
 
-            result.PageCount = (int) Math.Ceiling((double) result.RowCount / result.PageSize);
+            result.PageCount = (int)Math.Ceiling((double)result.RowCount / result.PageSize);
 
             var skip = (result.PageNumber - 1) * result.PageSize;
             var results = sortedQuery.Skip(skip).Take(result.PageSize);
